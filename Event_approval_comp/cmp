@@ -1,9 +1,11 @@
-<aura:component implements="force:lightningQuickAction,force:hasRecordId" controller="EventApprovalLController">
+<aura:component implements="force:appHostable,force:hasRecordId,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,forceCommunity:availableForAllPageTypes,force:lightningQuickAction,lightning:isUrlAddressable" 
+                access="global" controller="EventApprovalLController">
     
     <aura:handler name="init" value="{!this}" action="{!c.load}"/>
     <aura:handler event="force:refreshView" action="{!c.doInit}" />
     
     <aura:attribute name="ListOfEvent" type="String[]"/>
+    <aura:attribute name="ListOfNames" type="String[]"/>
     
     <aura:attribute name="showPrompt" type="Boolean" default="false"/>
     <aura:attribute name="showmodal" type="Boolean" default="false"/>
@@ -15,64 +17,68 @@
     <aura:attribute name="ApproversId" type="String[]"/>
     
     
-    <Lightning:card class="slds-m-around_xx-small slds-m-top_none slds-m-bottom_none slds-card__body">
+  
         <div class="slds-m-around_xx-large">
             <h1 class="slds-text-heading--medium">EVENTS</h1>
             <br/>
+            <lightning:layout >
             <!--Contact List Table-->
             <table class="slds-table slds-table--bordered slds-table--cell-buffer" role="grid">      
-                <thead>  
-                    <tr class="slds-text-title--caps">
-                        
-                        <th scope="col">
-                            <div class="slds-truncate" title="Event Name">Subject</div>
-                        </th>
-                        <th scope="col">
-                            <div class="slds-truncate" title="Created Date">Created Date</div>
-                        </th>
-                        
-                        <th scope="col">
-                            <div class="slds-truncate" title="EndDate">EndDate</div>
-                        </th>
-                        
-                        <th scope="col">
-                            <div class="slds-truncate" title="Description">Description</div>
-                        </th>
-                        <th scope="col">
-                            <div class="slds-truncate" title="Subject">Approval Status</div>
-                        </th>
-                        <th scope="col">
-                            <div class="slds-truncate" title="Subject">Approve/Reject</div>
-                        </th>
-                    </tr>
-                </thead>
+                
+                
                 <tbody>        
                     <aura:iteration items="{!v.ListOfEvent}" var="Ev">
-                        <tr>
+                          <Lightning:card class="slds-m-around_xx-small slds-m-top_none slds-m-bottom_none slds-card__body">
+                        
+                            <lightning:layoutItem flexibility="auto" padding="horizontal-medium">
                             <th>
-                                <div class="slds-truncate" title="{!Ev.Name}">{!Ev.Type}</div>
+                                <div class="slds-truncate" title="Created BY">Created BY :</div>
+                                <div class="slds-truncate" title="{!Ev.Createdby.Name}">{!Ev.Createdby}</div>
                             </th>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="horizontal-medium">
+                            <th>
+                                <div class="slds-truncate" title="Event Name">Subject :</div>
+                                <div class="slds-truncate" title="{!Ev.eventrec.Type}">{!Ev.eventrec.Type}</div>
+                            </th>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="horizontal-medium">
                             <th scope="row">
-                                <div class="slds-truncate" title="{!Ev.Name}">{!Ev.CreatedDate}</div>
+                                <div class="slds-truncate" title="Created Date">Created Date :</div>
+                                <div class="slds-truncate" title="{!Ev.eventrec.CreatedDate}">{!Ev.eventrec.CreatedDate}</div>
                             </th>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="horizontal-medium">
                             <td>
-                                <div class="slds-truncate" title="{!Ev.Account.Name}">{!Ev.EndDate}</div>
+                                <div class="slds-truncate" title="EndDate">EndDate :</div>
+                                <div class="slds-truncate" title="{!Ev.eventrec.EndDate}">{!Ev.eventrec.EndDate}</div>
                             </td>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="horizontal-medium">
                             <th scope="row">
-                                <div class="slds-truncate" title="{!Ev.Phone}">{!Ev.Description}</div>
+                                <div class="slds-truncate" title="Description">Description :</div>
+                                <div class="slds-truncate" title="{!Ev.eventrec.Description}">{!Ev.eventrec.Description}</div>
                             </th>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="horizontal-medium">
                             <td>
-                                <div class="slds-truncate" title="{!Ev.Email}">{!Ev.Approval_Status__c}</div>
+                                <div class="slds-truncate" title="Subject">Approval Status :</div>
+                                <div class="slds-truncate" title="{!Ev.eventrec.Approval_Status__c}">{!Ev.eventrec.Approval_Status__c}</div>
                             </td>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" padding="horizontal-medium">
                             <td>
-                                <button class="slds-button slds-button_brand"  onclick="{!c.getvalues }"  id="{!Ev.Id}">Approve/Reject</button>
+                                
+                                <button class="slds-button slds-button_brand"  onclick="{!c.getvalues }"  id="{!Ev.eventrec.Id}">Approve/Reject</button>
                             </td>
+                            </lightning:layoutItem>
                             
-                        </tr>
+                        
+                        </Lightning:card>
                     </aura:iteration>
                 </tbody>
             </table>
-            
+            </lightning:layout>
             <div class="slds-m-around_xx-large"  >
                 
                 
@@ -106,6 +112,5 @@
             </div>
             
         </div>
-    </Lightning:card>
     
 </aura:component>
