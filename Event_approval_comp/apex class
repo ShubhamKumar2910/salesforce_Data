@@ -1,0 +1,220 @@
+public without sharing class EventApprovalLController 
+{
+    
+    
+    @AuraEnabled
+    public static List<EventRec> getEventList()
+    {
+        Profile userProfile = [SELECT Id, Name FROM Profile WHERE Id=:userinfo.getProfileId()];
+        
+        String MyProfileName = userProfile.Name;
+        
+        string manid = userinfo.getUserId();
+        
+        List<Id> Eventid = new List<Id>();
+        
+        List<String> namesofcreator = new List<String>();
+        
+        List<EventRec> evreclist = new List<EventRec>();
+        
+        List<Event> EventRecord = [SELECT CreatedById, Approval_Status__c,CreatedDate,EndDate,Description ,Type FROM Event WHERE Manager_User__c =:manid and Approval_Status__c = 'Requested'];
+        
+        for(Event ev : EventRecord)
+        {
+            for(User str:[select name from user where id =:ev.CreatedById] )
+            {
+                evreclist.add(new EventRec(str.name,ev));  
+            }
+            
+        }
+        return evreclist;
+        
+    }
+    
+    @AuraEnabled
+    public static EventWrapper getEvent(Id recId)
+    {
+        Profile userProfile = [SELECT Id, Name FROM Profile WHERE Id=:userinfo.getProfileId()];
+        
+        String MyProfileName = userProfile.Name;
+        
+        String allApprovalConditions        = Label.Approval_Conditions;
+        
+        List<String> allowedProfileName     = new List<String>();
+        
+        if(allApprovalConditions.contains(','))
+            allowedProfileName  = allApprovalConditions.split(',');
+        else{
+            allowedProfileName.add(allApprovalConditions);
+        }
+        
+        Boolean Del_Man_Pr = gettingValuesForProfile.Del_Man_Pr();
+        
+        Boolean App_rej_Pr = gettingValuesForProfile.App_rej_Pr();
+        
+        if(!String.isEmpty(recId))
+        {   
+            DateTime previousDate = System.now().addDays(-2);
+            
+            Event e = [SELECT Id,ActivityDate,Approval_Status__c,Approved_Rejected_By__r.Name,Approval_Rejection_Timestamp__c,Subject,Type,description,StartDateTime,Location,EndDateTime,Approval_Comments__c,OwnerId,CreatedDate,Owner.Email,Owner.Name FROM Event WHERE Id = :recId];
+            String ManagerId = [SELECT ManagerId FROM User WHERE id = :e.OwnerId].ManagerId;
+            
+            Boolean isRecordTwoDaysOlder = e.ActivityDate < previousDate;
+            
+            system.debug('The values are'+e.Approval_Status__c);
+            return new EventWrapper(e.Id,e.Approval_Status__c,e.Approval_Comments__c,ManagerId,isRecordTwoDaysOlder,e.Owner.Name,e.Owner.Email,e,Del_Man_Pr,App_rej_Pr);
+        }
+        
+        return null;
+    }
+    @AuraEnabled
+    public static List<String> getIdofapprover(Id recId)
+    {
+        
+        List<String> Idlist = new List<String>();
+        
+        if(!String.isEmpty(recId))
+        {
+            Event e = [SELECT Id,Approval_Status__c,Approved_Rejected_By__r.Name,Approval_Rejection_Timestamp__c,Subject,Type,description,StartDateTime,Location,EndDateTime,Approval_Comments__c,OwnerId,CreatedDate,Owner.Email,Owner.Name FROM Event WHERE Id = :recId];
+            String ManagerId = [SELECT ManagerId FROM User WHERE id = :e.OwnerId].ManagerId;
+            String DelAppId  = [SELECT DelegatedApproverId FROM User WHERE id = :e.OwnerId].DelegatedApproverId;
+            
+            Idlist.add(ManagerId);
+            Idlist.add(DelAppId);
+            
+            system.debug('The list of ids are : '+Idlist );
+            
+        }
+        return Idlist; 
+    }
+    @AuraEnabled
+    public static Boolean updateEvent(String reqString)
+    {
+        try
+        {
+            Map<String,Object> unTypedMap = (Map<String,Object>)JSON.deserializeUntyped(reqString);
+            
+            System.debug(unTypedMap);
+            
+            update new Event(Approved_Rejected_By__c =userinfo.getUserId(),Approval_Rejection_Timestamp__c=System.now(),Id = (Id)unTypedMap.get('Id'),Approval_Status__c = (String)unTypedMap.get('status'), Approval_Comments__c = (String)unTypedMap.get('comment'));
+            
+            
+            sendApprovalRejectionEmail((Id)unTypedMap.get('Id'),(String)unTypedMap.get('empEmail'),(String)unTypedMap.get('empName'),(String)unTypedMap.get('status'),(String)unTypedMap.get('comment'));
+            
+            return true;
+            
+        }catch(Exception e){
+            system.debug('error :'+e.getMessage());
+            return false;
+        }
+    }
+    public static void sendApprovalRejectionEmail(Id evtId,String empEmail, String empName,String approvedOrReject, String approvalComments)
+    {
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+        string[] to = new string[] {empEmail};
+            
+            email.setToAddresses(to);
+        email.setSubject('Your Approval/Rejection Status');
+        
+        email.setHtmlBody('Hi '+empName+',<br/><br/>Your request has been '+ approvedOrReject+'<br/><br/> for the Following request : '+'<a href="'+URL.getSalesforceBaseUrl().toExternalForm()+'/'+evtId+'">click here </a> <br/><br/>'+'Approval/Rejection Description: '+approvalComments);
+        try
+        {
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
+        }catch(exception e)
+        {
+            System.debug('--->'+e.getMessage());
+            ExceptionLog.createExceptionLog(e,'EventApprovalLController','sendApprovalRejectionEmail','Event');
+            
+        }
+    }
+    public class EventWrapper
+    {
+        @AuraEnabled public String recId {get;set;}
+        @AuraEnabled public String status {get;set;}
+        @AuraEnabled public String comments {get;set;}
+        @AuraEnabled public String managerId {get;set;}
+        @AuraEnabled public String recordOwnerName {get;set;}
+        @AuraEnabled public String recordOwnerEmail {get;set;}
+        @AuraEnabled public boolean isRecordTwoDaysOlder {get;set;}
+        @AuraEnabled public Event eventrec {get;set;}
+        @AuraEnabled public Boolean Del_Man_Pr {get;set;}
+        @AuraEnabled public Boolean App_rej_Pr {get;set;}
+        
+        public EventWrapper(Id recId, String status, String commments,String managerId,Boolean isRecordTwoDaysOlder,String recordOwnerName,String recordOwnerEmail,Event eventrec,Boolean Del_Man_Pr,Boolean App_rej_Pr){
+            this.recId = recId;
+            this.status = status;
+            this.comments = comments;
+            this.managerId = managerId;
+            this.isRecordTwoDaysOlder = isRecordTwoDaysOlder;
+            this.recordOwnerName = recordOwnerName;
+            this.recordOwnerEmail = recordOwnerEmail;
+            this.eventrec=eventrec;  
+            this.Del_Man_Pr = Del_Man_Pr;
+            this.App_rej_Pr = App_rej_Pr;
+            
+        }
+    }
+    
+    public class EventRec
+    {
+        @AuraEnabled public String Createdby {get;set;}
+        @AuraEnabled public Event eventrec {get;set;}
+        
+        public EventRec(String Createdby,event eventrec){
+            this.Createdby = Createdby;
+            this.eventrec = eventrec;
+            
+        }
+    }
+    
+    
+    @InvocableMethod(label='EventAlertfortwentyfour' description='sendEmailNotificationAfterTwentyFour')
+    public static void sendEmailNotificationAfterTwentyFour(List<Id> ids) 
+    {
+        try
+        {
+            Event eventRec = [SELECT Id,Approval_Status__c,Approval_Comments__c,OwnerId,CreatedDate,Owner.Email,Owner.Name,Type,Subject FROM Event WHERE Id IN:ids limit 1];
+            
+            User ownerRec = [SELECT ManagerId,DelegatedApproverId FROM User WHERE id = :eventRec.OwnerId];
+            Map<Id,User> usermap = new Map<Id,User>([Select Id,Name,Email from User where Id IN:new List<String>{ownerRec.ManagerId,ownerRec.DelegatedApproverId}]);
+            
+            Date myDate = date.newinstance(eventRec.CreatedDate.year(), eventRec.CreatedDate.month(), eventRec.CreatedDate.day());
+            
+            String EmpName   = eventRec.Owner.Name;
+            String gentleReminder = 'Gentle Reminder-1';
+            
+            String managerName = usermap.get(ownerRec.ManagerId).Name;
+            String managerEmail=usermap.get(ownerRec.ManagerId).Email;
+            String delegateEmail=usermap.get(ownerRec.DelegatedApproverId).Email;
+            System.debug('delegateEmail'+delegateEmail);
+            String AssignedUserEmail= eventRec.Owner.Email;
+            Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+            string[] to = new string[] {managerEmail};
+                
+                String ExpiryDate = dateTime.newinstance(myDate.year(), myDate.month(), myDate.day()).addDays(2).format('yyyy.MM.dd');
+            
+            Datetime dt = Datetime.valueOf((eventRec.CreatedDate).addDays(2));
+            String hour = String.valueOf(dt.hour());  
+            String Minute = String.valueOf(dt.minute());
+            hour = Integer.valueOf(hour)<10?'0'+hour:hour;
+            Minute = Integer.valueOf(Minute)<10?'0'+Minute:Minute;
+            
+            String amOrPM = Integer.valueOf(hour)<12?'AM':'PM';
+            
+            email.setToAddresses(new List<String>{managerEmail});
+            
+            email.setCcAddresses(new List<String>{delegateEmail,AssignedUserEmail});
+            
+            email.setSubject('Your Approval/Rejection Reminder');
+            
+            email.setHtmlBody('Hi '+managerName+',<br/><br/> Event Subject: '+eventRec.Subject+'<br/><br/> '+gentleReminder+'<br/><br/> You have a request Which is due for Approval. Please take neccessary action. Otherwise the approval link will expire on '+ExpiryDate+' '+hour+':'+Minute+' '+amOrPM+'.<br/><br/>'+'<a href ="'+URL.getSalesforceBaseUrl().toExternalForm()+'/'+ids[0]+'">Click Here to Approve/Reject<br/><br/><br/><br/');
+            
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { email });
+        }
+        catch(exception e)
+        {
+            System.debug('--->'+e.getMessage()+'@@ AT'+e.getLineNumber());
+            ExceptionLog.createExceptionLog(e,'EventApprovalLController','sendEmailNotificationAfterTweleve','Event');
+        }   
+    }
+}
