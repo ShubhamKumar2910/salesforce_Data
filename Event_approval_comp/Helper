@@ -1,0 +1,35 @@
+({
+    GetValues : function(component, event, helper) 
+    {
+        debugger;
+        var idx = event.target.id;
+        var action = component.get('c.getIdofapprover');
+        action.setParams({
+            recId : idx
+        });
+        
+        action.setCallback(this,function(res)
+                           {
+                               if (res.getState() === 'SUCCESS') 
+                               {
+                                   var ids = res.getReturnValue();
+                                   
+                                   component.set("v.ApproversId",ids);
+                                   
+                                   var values = component.get("v.ApproversId");
+                                   
+                                   if(values[0] == $A.get("$SObjectType.CurrentUser.Id") || values[1] == $A.get("$SObjectType.CurrentUser.Id"))
+                                   {
+                                        component.set("v.showForm",true);
+                                         //$A.get('e.force:refreshView').fire();
+                                   }
+                                   
+                                   else{
+                                       component.set("v.showPrompt",true);
+                                   }
+                                   
+                               }
+                           });
+        $A.enqueueAction(action);
+    },
+})
