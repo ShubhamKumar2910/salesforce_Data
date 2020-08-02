@@ -1,0 +1,114 @@
+# MyfirstRe
+Will start the github now..
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" Controller="CongaController" >	
+    
+    
+    <aura:attribute name="recordId" type="string" />
+    <aura:attribute name="recordError" type="string" access="private" />
+    <aura:attribute name="checkSpinner" type="boolean" default="false"/>
+    <aura:attribute name="loader" type="boolean" default="false"/>
+    <aura:attribute name = "allContactList" type = "String[]" />
+    <aura:attribute name="attachmentId" type= "String" default=""/>
+    <aura:attribute name="displaycondetails" default="false" type="Boolean"/>
+    <aura:attribute name="modalHeader" type="String"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <aura:if isTrue="{!v.loader}">    
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    
+    <Lightning:card class="slds-m-around_xx-small slds-m-top_none slds-m-bottom_none slds-card__body">
+        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+        
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col">
+                <span></span>
+            </div>
+            
+            <div class="slds-col">
+                <span></span>
+            </div>
+            
+            <div class="slds-col">
+                <span>
+                    <Lightning:button class="slds-m-around_xxx-small colorred" variant="brand" label="Generate Attachement"  onclick="{!c.generateAttachment}" />
+                    
+                    <Lightning:button class="slds-m-around_xxx-small colorPurple" variant="brand" label="View Contact Details"  onclick="{!c.openAttachment}" />
+                </span>
+            </div>
+            
+            <div class="slds-col">
+                <span></span>
+            </div>
+        </div>
+        
+    </Lightning:card>
+    
+    <aura:if isTrue="{!v.displaycondetails}">
+        <c:DisplayContactDetails displaycondetails="{!v.displaycondetails}"  attId="{!v.attachmentId}" modalHeader="{!v.modalHeader}"/>
+    </aura:if>
+    
+</aura:component>
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" Controller="CongaController" >	
+    
+    
+    <aura:attribute name="recordId" type="string" />
+    <aura:attribute name="recordError" type="string" access="private" />
+    <aura:attribute name="checkSpinner" type="boolean" default="false"/>
+    <aura:attribute name="loader" type="boolean" default="false"/>
+    <aura:attribute name = "allContactList" type = "String[]" />
+    <aura:attribute name="attachmentId" type= "String" default=""/>
+    <aura:attribute name="displaycondetails" default="false" type="Boolean"/>
+    <aura:attribute name="modalHeader" type="String"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <aura:if isTrue="{!v.loader}">    
+        <div aura:id="spinnerId" class="slds-spinner_container">
+            <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                <span class="slds-assistive-text">Loading</span>
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </aura:if>
+    
+    <Lightning:card class="slds-m-around_xx-small slds-m-top_none slds-m-bottom_none slds-card__body">
+        <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+        
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col">
+                <span></span>
+            </div>
+            
+            <div class="slds-col">
+                <span></span>
+            </div>
+            
+            <div class="slds-col">
+                <span>
+                    <Lightning:button class="slds-m-around_xxx-small colorred" variant="brand" label="Generate Attachement"  onclick="{!c.generateAttachment}" />
+                    
+                    <Lightning:button class="slds-m-around_xxx-small colorPurple" variant="brand" label="View Contact Details"  onclick="{!c.openAttachment}" />
+                </span>
+            </div>
+            
+            <div class="slds-col">
+                <span></span>
+            </div>
+        </div>
+        
+    </Lightning:card>
+    
+    <aura:if isTrue="{!v.displaycondetails}">
+        <c:DisplayContactDetails displaycondetails="{!v.displaycondetails}"  attId="{!v.attachmentId}" modalHeader="{!v.modalHeader}"/>
+    </aura:if>
+    
+</aura:component>
