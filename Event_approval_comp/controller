@@ -1,0 +1,133 @@
+({
+     getvalues : function(component, event, helper) {
+         debugger;
+         
+        var idx = event.target.id;
+       // alert(idx);  
+        component.set("v.showPrompt",true);
+        component.set("v.showmodal",true);
+        component.set("v.eventId",idx);
+        debugger;
+        var action = component.get('c.getEvent');
+        action.setParams({
+            recId : idx
+        });
+        
+        action.setCallback(this,function(res){
+            if (res.getState() === 'SUCCESS') {
+                debugger;
+                var eventRecord = res.getReturnValue();
+                component.set("v.empName",eventRecord.recordOwnerName);
+                component.set("v.empEmail",eventRecord.recordOwnerEmail);
+                
+                if(eventRecord.status == "Requested"){
+                    if(eventRecord.isRecordTwoDaysOlder == true){
+                        if(eventRecord.Del_Man_Pr == false)
+                        {   
+                            component.set("v.message","Record is More than 48 hours Old. You can not Approve/Reject it now!");
+                            component.set("v.showPrompt",true);
+                        }
+                    }
+                }
+                if(eventRecord.status == "Requested")
+                {
+                    helper.GetValues(component, event, helper);
+                    
+                }
+                else if(eventRecord.status == "Rejected"){
+                    if(eventRecord.App_rej_Pr == false)
+                    {
+                        component.set("v.message","Event has already been Rejected!");
+                        component.set("v.showPrompt",true);
+                    }
+                    
+                }
+                    else if(eventRecord.status == "Approved"){
+                        if(eventRecord.App_rej_Pr == false)
+                        {   
+                            component.set("v.message","Event has already been Approved!");
+                            component.set("v.showPrompt",true);
+                        }
+                        
+                    }
+            }else if (res.getState() === 'ERROR'){
+                var errors = res.getError();
+                if (errors) {
+                    if (errors[0] && errors[0].message) {
+                        alert(errors[0].message);
+                    }
+                } 
+            }
+        });
+        $A.enqueueAction(action);
+         
+    },
+      handleSubmit : function(cmp, event, helper) {
+        debugger;
+        var status = cmp.find("approval-status").get("v.value");
+        var comment = cmp.get("v.approvalComment");
+        
+        var action = cmp.get('c.updateEvent');
+       
+        var reqObj = {"status":status,"comment":comment,"Id":cmp.get("v.eventId"),"empEmail":cmp.get("v.empEmail"),"empName":cmp.get("v.empName")};
+        action.setParams({
+            reqString : JSON.stringify(reqObj)
+        });
+        
+        action.setCallback(this,function(res){
+            if (res.getState() === 'SUCCESS') {
+                var abc = res.getReturnValue();
+        debugger;
+                window.location.reload();
+            }else if (res.getState() === 'ERROR'){
+                var errors = res.getError();
+                if (errors) {
+                    if (errors[0] && errors[0].message) {
+                        alert(errors[0].message);
+                    }
+                } 
+            }
+        });
+        $A.enqueueAction(action); 
+    },
+    
+    load : function(component, event, helper) {
+        component.set("v.showPrompt",false);
+        debugger;
+        var action = component.get('c.getEventList');
+        
+        // Var eventlist = ;
+        
+        action.setCallback(this,function(res){
+            if (res.getState() === 'SUCCESS') {
+                debugger;
+                var eventRecord = res.getReturnValue();
+                component.set("v.ListOfEvent",eventRecord);
+                //  component.set("v.empEmail",eventRecord.recordOwnerEmail);
+                
+                
+            }
+            else if (res.getState() === 'ERROR'){
+                var errors = res.getError();
+                if (errors) {
+                    if (errors[0] && errors[0].message) {
+                        alert(errors[0].message);
+                    }
+                } 
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    openModel: function(component, event, helper) {
+        // Set isModalOpen attribute to true
+        component.set("v.showmodal", true);
+    },
+    
+    closeModel: function(component, event, helper) {
+        // Set isModalOpen attribute to false  
+        component.set("v.showmodal", false);
+    },
+    
+  
+    
+})
