@@ -1,0 +1,51 @@
+public class CongaController 
+{
+    @AuraEnabled 
+    public static Contact getContactDetails(String recId){
+        try{
+            Contact conRecord = [select Id from Contact where id=: recId Limit 1];
+            return conRecord;
+        }catch(Exception e)
+        {
+            System.debug('@@@@@'+e.getLineNumber()+'@@@'+e.getMessage());
+            return null;
+        }
+    }
+    
+    @AuraEnabled
+    public static String viewAttachment(String parentId)
+    {
+        try{
+            System.debug('parentId::: ' + parentId);
+            List<Attachment> attRecList;
+            if(parentId != null )
+            {
+                attRecList = [SELECT Id,Name,Body,ParentId FROM Attachment WHERE ParentID =: parentId ORDER BY LastModifiedDate DESC LIMIT 1];
+                
+            }
+            System.debug('attRec::: ' + attRecList.size());
+            System.debug('attRec::: ' + attRecList[0].Id);
+            return attRecList[0].Id;
+        }catch(Exception e){
+            System.debug('@@@@@'+e.getLineNumber()+'@@@'+e.getMessage());
+            return null;
+        }
+    }
+    @AuraEnabled
+    public static String generateAttachment()
+    {
+        try
+        {
+            contact c = [select id,contact_details_Link__c from contact where id ='0031k00000V0vyg'];
+            
+            return CongaControllerHelper.generateReport(CongaControllerHelper.getConDetailsURL(c),'contactdetails', 'null', 'null','null');
+            
+        }
+        catch(Exception e)
+        {
+            System.debug('@@@@@'+e.getLineNumber()+'@@@'+e.getMessage());
+            return null;
+        }
+    }
+    
+}
