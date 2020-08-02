@@ -103,6 +103,7 @@
                 debugger;
                 var eventRecord = res.getReturnValue();
                 component.set("v.ListOfEvent",eventRecord);
+              //  component.set("v.ListOfNames",eventRecord.createdByName);
                 //  component.set("v.empEmail",eventRecord.recordOwnerEmail);
                 
                 
