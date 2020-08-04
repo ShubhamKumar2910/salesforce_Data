@@ -1,0 +1,67 @@
+<apex:page controller="DataDisplayController" renderAs="pdf">
+    <apex:form >
+        <apex:pageBlock rendered="{!language=='English'}">
+            <apex:sectionHeader title="Self Assessment"/>
+            <apex:pageBlockSection >
+                <h3>Key Accomplishments</h3>
+                <p>{!keyAccomp}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>Experience Gap</h3>
+                <p>{!exprGap}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>Areas for Development</h3>
+                <p>{!arDev}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>Personality and Leadership</h3>
+                <p>{!perImg}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>Relevent Experience</h3>
+                <p>{!relExp}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                   <h3>Unique Characteristics</h3>
+                    <p>{!uniqChar}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                    <h3>Candidate Motivation</h3>
+                    <p>{!candidateMot}</p>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+                <apex:pageBlock rendered="{!language=='French'}">
+            <apex:sectionHeader title="Self Assessment"/>
+            <apex:pageBlockSection >
+                <h3>Principales réalisations</h3>
+                <p>{!keyAccomp}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>Écarts des expériences et connaissances</h3>
+                <p>{!exprGap}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>zone de développement</h3>
+                <p>{!arDev}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>Personalité et style de leadership</h3>
+                <p>{!perImg}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                <h3>Expériences pertinentes</h3>
+                <p>{!relExp}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                   <h3>Caractéristiques uniques </h3>
+                    <p>{!uniqChar}</p>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection >
+                    <h3>Motivation du candidat</h3>
+                    <p>{!candidateMot}</p>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+
+    </apex:form>
+</apex:page>
