@@ -1,0 +1,78 @@
+({
+    doInitHelper:function(component,event,helper){
+        debugger;
+        console.log('recordId==>'+component.get("v.recordId"));
+        var action=component.get("c.changeLanguage");
+        action.setParams({
+            "conId" : component.get("v.recordId")
+        });
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                var conObj=response.getReturnValue();
+                console.log(conObj);
+                if(conObj!=null){
+                  component.set("v.language",conObj['Language__c']);
+                  console.log(component.get("v.language"));
+                }
+                //console.log(conObj['Language__c']);
+                //console.log('Hello Language==>'+conObj['Language__c']);
+            }else{
+                alert('Some Error');
+                //console.log('Some Error');
+            }
+        });
+        $A.enqueueAction(action);
+    },
+	update : function(component,event) {
+        debugger;
+             component.set("v.loader", true);
+        var action = component.get("c.updateSelfAssessmentOfCandidate");
+        var recordValue={'Id':component.get("v.recordId"),'Areas_for_Development__c':component.get("v.Areas_for_Development__c"),'rel':component.get("v.relExp"),'Experience_Gaps__c':component.get("v.Experience_Gaps__c"),
+        'Unique_Characteristics__c':component.get("v.Unique_Characteristics__c"),'Personality_and_Image__c':component.get("v.Personality_and_Image__c"),'Candidate_Motivation__c':component.get("v.Candidate_Motivation__c"),'Key_Accomplishments__c':component.get("v.Key_Accomplishments__c")};
+        action.setParams({
+            "reqString" : JSON.stringify(recordValue)
+        });
+        action.setCallback(this, function(response) {
+            debugger;
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                
+                alert('Self Assesssment has been update for candidate.');
+                this.gen_self_ass(component,event);
+                component.set("v.loader", false);
+                    	component.set("v.isOpen","true");
+                window.close();
+            }else{
+                alert('Some Error');
+                //console.log('Some Error');
+            }
+        });
+        $A.enqueueAction(action);
+		
+	},
+    gen_self_ass : function(component,event) {
+        debugger;
+        var action = component.get("c.Generate_Self_Ass");
+
+        action.setParams({
+            "conid" : component.get("v.recordId")
+        });
+        
+        action.setCallback(this, function(response) {
+            debugger;
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                var genid = response.getReturnValue();
+                console.log('generated id'+genid);
+                //alert('Self Assesssment has been generated');
+                     }
+            else{
+                alert('Some Error');
+            }
+        });
+        $A.enqueueAction(action);
+		
+	},
+    
+})
