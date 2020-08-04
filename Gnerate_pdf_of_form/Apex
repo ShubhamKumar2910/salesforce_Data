@@ -1,0 +1,79 @@
+global Without Sharing class updateSelfAssessmentCtrl{
+    
+    @AuraEnabled
+    public static String updateSelfAssessmentOfCandidate(String reqString){
+        try {
+            System.debug(reqString);
+            Map<String,Object> unTypedMap 	= (Map<String,Object>)JSON.deserializeUntyped(reqString);
+            System.debug((String)unTypedMap.get('relExp'));
+            Contact conRecord				= new Contact(Id=(String)unTypedMap.get('Id'),Areas_for_Development__c=(String)unTypedMap.get('Areas_for_Development__c'),Relevant_Experience__c=(String)unTypedMap.get('rel'),
+                                                          Experience_Gaps__c=(String)unTypedMap.get('Experience_Gaps__c'),Unique_Characteristics__c=(String)unTypedMap.get('Unique_Characteristics__c'),Personality_and_Image__c=(String)unTypedMap.get('Personality_and_Image__c'),Candidate_Motivation__c=(String)unTypedMap.get('Candidate_Motivation__c'),Key_Accomplishments__c=(String)unTypedMap.get('Key_Accomplishments__c'),SelfAssessment__c=true);
+            
+            update conRecord;
+            return 'success';
+            
+        } 
+        catch (Exception e) {
+            System.debug('Error:::'+e.getMessage()+' AT '+e.getLineNumber());
+            return null;
+        }
+    }
+    @AuraEnabled
+    public static String Generate_Self_Ass(String conid)
+    {
+        try{
+            system.debug('conid'+conid);
+            Contact con = [select Self_Assesment_Link__c,Self_Assesment_Fr_Link__c,Language__c from contact where id =:conid];
+            system.debug('Language'+con.Language__c);
+            if(con.Language__c.toLowerCase() == 'english')
+            {
+                string attachmentId = CongaHelperToolLightning.generateReport(con.Self_Assesment_Link__c,null,null,null,null);       
+                return attachmentId; 
+            }   
+            else
+            {
+                string attachmentId = CongaHelperToolLightning.generateReport(con.Self_Assesment_Fr_Link__c,null,null,null,null);
+                return attachmentId; 
+            }  
+        }catch(Exception e){
+            System.debug('@@@@@'+e.getLineNumber()+'@@@'+e.getMessage());
+            return null;
+        }
+        
+    }
+    @AuraEnabled
+    public static String viewAttachment(String parentId,String type)
+    {
+        try{
+            System.debug('parentId::: ' + parentId);
+            System.debug('type::: ' + type);
+            List<Attachment> attRecList;
+            if(parentId != null && type != null){
+                if(type == 'View Self Assessment'){
+                    attRecList = [SELECT Id,Name,Body,ParentId FROM Attachment WHERE ParentID =: parentId AND Name LIKE '%Self Assesment%' ORDER BY LastModifiedDate DESC LIMIT 1];
+                }
+            }
+            System.debug('attRec::: ' + attRecList.size());
+            return attRecList[0].Id;
+        }catch(Exception e){
+            System.debug('@@@@@'+e.getLineNumber()+'@@@'+e.getMessage());
+            return null;
+        }
+        
+    }
+    
+    @AuraEnabled
+    public static Contact changeLanguage(String conId){
+        try{
+            System.debug('conId==>'+conId);
+            Contact con=[select id,FirstName,LastName,Language__c from contact where id=:conId];
+            System.debug('con==>'+con);
+            if(con!=null){
+                return con;
+            }
+        }catch(Exception e){
+            System.debug('Error==>'+e.getMessage()+'Line Number==>'+e.getLineNumber());
+        }
+		return null;
+    }
+}
