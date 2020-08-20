@@ -1,0 +1,59 @@
+ @AuraEnabled
+    public static String getStringFromList(List<String> sStatus) {
+        string s;
+        for(String status : sStatus){
+            s = (!String.isBlank(s)) ? (s + ',\'' + status + '\'') : ('\'' + status + '\'');
+        }
+        return s; 
+     }   
+     
+      @AuraEnabled  
+    public static assignmentListWrapper getMontrealreview(String value)
+    {
+        
+       
+
+       system.debug('welcome to the montreal view');
+        
+        
+       List<String> ModuleValues = new List<String>{'Module 1','Module 2','Module 3'}; 
+       String modules = getStringFromList(ModuleValues);    
+        
+       List<String> ModuleValuesonHold = new List<String>{'Module 1 on Hold','Module 2 on Hold','Module 3 on Hold'}; 
+       String modulesonhold = getStringFromList(ModuleValuesonHold);   
+        
+       Id UserId = UserInfo.getUserId(); 
+       assignmentListWrapper returnMyAssignments = new assignmentListWrapper();
+        
+        if (value == 'Montreal Weekly review')
+        {
+        returnMyAssignments.lstAssignments = Database.query('Select Id, Name, Company__c, '+
+                                                  'Company__r.Name, '+
+                                                  'Company_Name_French__c, '+
+                                                  'Job_Function__c, Level__c, '+
+                                                  'Assignment_Status__c, '+
+                                                  'Consultant__r.Name, '+
+                                                  'Partner__r.Name, '+
+                                                  'Number_of_potential_candidates__c, '+
+                                                  'Number_of_candidates__c, '+
+                                                  'number_of_days__c, '+
+                                                  'Has_Job_Description__c, '+
+                                                  'Has_Research_Strategy__c, '+
+                                                  'Leaders_interviews__c, ' +
+                                                  'Client_interviews__c ,' +
+                                                  'Module__c '+
+                                                  'from Mandate__c '+
+                                                  'where Module__c in ('+ modules +')'+
+                                                  'AND (Consultant__c = \''+ userId +'\' '+
+                                                  'or Partner__c = \''+ userId +'\' '+
+                                                  'or Partner_2__c = \''+ userId +'\' '+
+                                                  'or Researcher__c = \''+ userId +'\' '+ 
+                                                  'or Researcher_3__c = \''+ userId +'\' '+
+                                                  'or Researcher_4__c = \''+ userId +'\' '+
+                                                  'or Researcher_5__c = \''+ userId +'\' )'+
+                                                  'Order By module__c'  );
+        
+        
+        
+        return returnMyAssignments;
+       }
