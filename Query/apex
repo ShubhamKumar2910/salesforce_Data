@@ -57,3 +57,18 @@
         
         return returnMyAssignments;
        }
+       
+       //When you wnat to fetch data from the lookup you have created
+
+where the name in subquery is the Child Relationship Name from the lookup field
+
+list<mandate__c> manlist = [Select id,(Select name from Assignment_Notes__r) from mandate__c];
+system.debug('manlist'+manlist);
+for(mandate__c man:manlist)
+{
+    for(Assignment_Notes__c ass:man.Assignment_Notes__r )
+    {
+        system.debug(ass);
+    }
+}
+ass will give u the lookup fields..
