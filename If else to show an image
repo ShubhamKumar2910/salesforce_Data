@@ -1,0 +1,7 @@
+if(OR(
+ISBLANK(Text(Update_summary_lines_in_LRA_to_reflect_f__c)),
+ISBLANK(Text(X3_month_check_in__c)),
+ISBLANK(Text(X1_year_check_in__c	)),
+ISBLANK(Text(Add_tracking_list_to_LRA_move_folder_in__c)),
+ISBLANK(Text(Update_project_history_with_final_candid__c))
+),IMAGE("/resource/1523798147000/GraphicsPackNew/silk/16/silk/cross.png","Hot"),IMAGE("/resource/1523798147000/GraphicsPackNew/silk/16/silk/accept.png","Hot"))
