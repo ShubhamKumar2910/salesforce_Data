@@ -1,0 +1,39 @@
+public class AssignmentProcessNotesController {
+    
+    
+    
+    @AuraEnabled 
+    public static Assignment_Notes__c fetchNotes(Id recId)
+    {
+        String query ='';
+        String SobjectApiName = 'Assignment_Notes__c';
+        Map<String, Schema.SObjectType> schemaMap = Schema.getGlobalDescribe();
+        Map<String, Schema.SObjectField> fieldMap = schemaMap.get(SobjectApiName).getDescribe().fields.getMap();
+        String strFields = '';
+        
+        for(String fieldName : fieldMap.keyset() )
+        {
+            if(strFields == null || strFields == '')
+            {
+                strFields = fieldName;
+            }else{
+                strFields = strFields + ' , ' + fieldName;
+            }
+        }
+        
+        system.debug('recId'+recId);
+        query = 'select ' + strFields + ' from ' + SobjectApiName + ' where Assignment_Research__c =:recId ';
+        
+        system.debug('notesList'+query);
+        
+        List <Assignment_Notes__c> notesList = Database.query(query);
+        
+        system.debug('notesList'+notesList);
+        
+        return notesList[0];
+        
+        
+    }
+    
+    
+}
