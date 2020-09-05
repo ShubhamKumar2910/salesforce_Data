@@ -1,0 +1,68 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global" controller="AssignmentListLightning" >
+    
+    
+    <!--   <aura:attribute name="mydata" type="Object" />
+   <aura:attribute name="mycolumns" type="List" /> -->
+    <aura:attribute name="selectlist" type="String" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"></aura:handler>
+    <!-- <aura:attribute name="Spinner" type="boolean" default="false" /> 
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}" />
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}" />  -->
+    
+    <aura:registerEvent  name="AssignmentListEvent" type="c:AssignmentListEvent"></aura:registerEvent>
+    <aura:attribute name="MontrealView" type="boolean" default="false" />
+    <aura:attribute name="OttawaView" type="boolean" default="false" />
+    <aura:attribute name="TorontoView" type="boolean" default="false" />
+    <aura:attribute name="openModalView" type="boolean" default="false" />
+    <aura:attribute name="TeamName" type="String" default="" />
+ 
+    <lightning:card title="Assignments" >
+        <article class="slds-card">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-contact" title="contact">
+                            <lightning:icon class="slds-icon_container slds-icon-standard-contact" variant="inverse" iconName="standard:contact" size="large" onclick="{!c.gotoContact}"/>
+                            <span class="slds-assistive-text">Assignments </span> 
+                            
+                        </span>
+                        
+                
+                        
+                    </div>
+                    <div class="slds-media__body">
+                       
+                        <div class="slds-size_1-of-4">
+                            <span >
+                                <lightning:select aura:id="myselect" name="view" label="view :" onchange="{!c.onChangeMySelect}">
+                                    <option value="My Active Assignments" >My Active Assignment</option>
+                                    <option value="My Assignments">My Assignments</option>
+                                    <option value="All Active Assignments">All Active Assignments</option>
+                                    <option value="All Assignments">All Assignments</option>
+                                    
+                                    <aura:if isTrue="{!v.MontrealView}"> 
+                                        <option value="Montreal Weekly Review">Montreal Weekly Review</option>
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.OttawaView}"> 
+                                        <option value="Ottawa Weekly Review">Ottawa Weekly Review</option>
+                                    </aura:if>
+                                    <aura:if isTrue="{!v.TorontoView}"> 
+                                        <option value="Toronto Weekly Review">Toronto  Weekly Review</option>
+                                    </aura:if>
+                                    
+                                </lightning:select>
+                                
+                            </span> 
+                        </div>
+                        
+                    </div>
+                   
+        </article>
+        
+        <div>
+            <c:AssignmentListTableComp selectedlist="{!v.selectlist}"  TeamName="{!v.TeamName}" />   
+        </div>   
+        
+    </lightning:card>
+</aura:component>
