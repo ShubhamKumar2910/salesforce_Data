@@ -1,0 +1,371 @@
+({
+    myAction : function(component, event, helper) {
+        
+    },
+    
+    doInit: function(component,event,helper){
+        
+        
+        var selectedlist = event.getParam("selectedlist");
+        
+        /* component.set('v.mycolumns',[
+            {label:'Company', fieldName:'Company__r.Name' , type:'text'},
+            {label:'Assignment',fieldName:'Name', type:'text'}
+        ]);*/ 
+        
+        if(selectedlist = "My Active Assignments") 
+        {
+            helper.getDefaultAssignments(component,event,helper);
+        }
+        // var mydataRec = component.get("v.mydata").Id;
+        /*   var pageReference={
+             type: 'standard__component',
+             attributes: {
+                 componentName:'c__AssignmentCandidatesComp',
+             },
+             state:{
+                 "c__mandateId": "mandateId"
+                   }    
+         };        
+         component.set("v.pageReference",pageReference);*/
+        
+    },   
+    
+    handleClick:function(component,event,helper){
+        
+        var selectedItem = event.currentTarget
+        var recId = selectedItem.dataset.record;
+        console.log(recId);
+        
+        var pageReference={
+            type: 'standard__component',
+            attributes: {
+                componentName:'c__AssignmentCandidatesPageComp'
+            },
+            state:{
+                //  "c__mandateId": "a010B00001cUIfJQAW"
+                "c__mandateId": recId
+            }    
+        };        
+        component.set("v.pageReference",pageReference);
+        
+        helper.navigateAssignment(component,event,helper);
+        
+        
+        /* var navService = component.find("navService");
+        var pageReference1 = component.get("v.pageReference");
+        event.preventDefault();
+        navService.navigate(pageReference1);*/
+    },
+    viewNotes:function(component,event,helper){
+        var recId = event.currentTarget.id;
+        var selectedItem = event.currentTarget
+        //var recId = selectedItem.dataset.record;
+        console.log(recId);
+        
+        var pageReference={
+            type: 'standard__component',
+            attributes: {
+                componentName:'c__AssignmentProcessNotes'
+            },
+            state:{
+                //  "c__mandateId": "a010B00001cUIfJQAW"
+                "c__mandateId": recId,
+                "c__teamName": component.get("v.TeamName")
+            }    
+        };        
+        component.set("v.pageReference",pageReference);
+        
+        helper.navigateAssignment(component,event,helper);
+        
+        //window.open('/'+recId);
+        /*var navEvt = $A.get("e.force:navigateToSObject");
+        navEvt.setParams({
+            "recordId": recId,
+            "slideDevName": "chatter"
+        });
+        navEvt.fire();*/
+        /*var relatedListEvent = $A.get("e.force:navigateToRelatedList");
+            relatedListEvent.setParams({
+                "relatedListId": "Assignment_Notes__r",
+                "parentRecordId": recId
+            });
+            relatedListEvent.fire();*/
+        
+        
+    },
+    
+    displayAssignmentLists:function(component,event,helper){
+        var selectedlist = event.getParam("selectedlist");
+        console.log("Received component event"+selectedlist);
+        
+        
+        if(selectedlist == "My Active Assignments")
+        {
+            helper.showSpinner(component);
+            helper.getDefaultAssignments(component,event,helper);
+        }  
+        
+        else if (selectedlist == "My Assignments")
+        {
+            helper.showSpinner(component);
+            helper.getMyAssignments(component,event,helper);
+        }
+        
+            else if(selectedlist=="All Active Assignments") 
+            {
+                helper.showSpinner(component);
+                helper.getAllActiveAssignments(component,event,helper);
+            }
+                else if(selectedlist=="All Assignments") 
+                {
+                    helper.showSpinner(component);
+                    helper.getAllAssignments(component,event,helper)
+                }
+       else if(selectedlist == "Montreal Weekly Review" )
+        {
+            debugger;
+            helper.showSpinner(component);
+            helper.getMontrealreview(component,event,helper);
+        }   
+       else if(selectedlist == "Ottawa Weekly Review" )
+        {
+            debugger;
+            helper.showSpinner(component);
+            helper.getOttawareview(component,event,helper);
+        }   
+       else if(selectedlist == "Toronto Weekly Review" )
+        {
+            debugger;
+            helper.showSpinner(component);
+            helper.getTorontoreview(component,event,helper);
+        }   
+    },
+    
+    handleOpenModal: function(component, event, helper) {
+        //For Display Modal, Set the "openModal" attribute to "true"
+        
+    },
+    
+    handleCloseModal: function(component, event, helper) {
+        //For Close Modal, Set the "openModal" attribute to "fasle"  
+        component.set("v.openModal", false);
+    }
+    
+    /*   showSpinner :function(component,event,helper){
+        component.set("v.Spinner",true);
+    },
+    
+    hideSpinner: function(component,event,helper){
+        component.set("v.Spinner",false);
+    }*/
+    
+    
+})
+
+-------------------------------------------------------------------------------------------------------------------------------------
+HELPER()
+
+({
+    
+    getDefaultAssignments : function(component,event,helper) {
+        
+		var action = component.get("c.getDefaultValues");
+        action.setCallback(this, $A.getCallback(function(response){
+            var state= response.getState();
+            
+            if(state=="SUCCESS"){
+                component.set("v.mydata",response.getReturnValue());
+                				helper.hideSpinner(component);
+
+                
+            }else if (state=="ERROR"){
+                var errors = response.getError();
+                console.error(errors);
+            }
+            
+            
+            
+        } ));
+        $A.enqueueAction(action);
+	},
+    
+    getMyAssignments : function(component,event,helper){
+        
+        var action = component.get("c.getMyAssignmentValues");
+        action.setCallback(this,$A.getCallback(function(response){
+            var state = response.getState();
+            
+            if(state== "SUCCESS"){
+                component.set("v.mydata",response.getReturnValue());
+				helper.hideSpinner(component);
+
+            }else if(state=="ERROR"){
+                var errors = response.getError();
+                console.error(errors);
+            }
+        }));
+        $A.enqueueAction(action);
+    },
+      
+    getMontrealreview : function(component,event,helper){
+        
+        debugger;
+        var action = component.get("c.getAllAssignmentByTeam");
+        
+        action.setParams({ teamName : 'The Montreal Team' });
+        
+        action.setCallback(this,$A.getCallback(function(response){
+            var state = response.getState();
+            
+            if(state== "SUCCESS"){
+                component.set("v.mydata",response.getReturnValue());
+                                helper.hideSpinner(component);
+                
+
+            }else if(state=="ERROR"){
+                var errors = response.getError();
+                console.error(errors);
+            }
+        }));
+        $A.enqueueAction(action);
+    },
+    getOttawareview : function(component,event,helper){
+        
+        debugger;
+        var action = component.get("c.getAllAssignmentByTeam");
+        
+        action.setParams({ teamName : 'Ottawa Team' });
+        
+        action.setCallback(this,$A.getCallback(function(response){
+            var state = response.getState();
+            
+            if(state== "SUCCESS"){
+                component.set("v.mydata",response.getReturnValue());
+                                helper.hideSpinner(component);
+                
+
+            }else if(state=="ERROR"){
+                var errors = response.getError();
+                console.error(errors);
+            }
+        }));
+        $A.enqueueAction(action);
+    },
+    
+    getTorontoreview : function(component,event,helper){
+        
+        debugger;
+        var action = component.get("c.getAllAssignmentByTeam");
+        
+        action.setParams({ teamName : 'Toronto Team' });
+        
+        action.setCallback(this,$A.getCallback(function(response){
+            var state = response.getState();
+            
+            if(state== "SUCCESS"){
+                component.set("v.mydata",response.getReturnValue());
+                                helper.hideSpinner(component);
+                
+
+            }else if(state=="ERROR"){
+                var errors = response.getError();
+                console.error(errors);
+            }
+        }));
+        $A.enqueueAction(action);
+    },
+    
+    
+    getAllActiveAssignments : function(component,event,helper){
+        
+        var action = component.get("c.getAllActiveAssignmentValues");
+        
+        action.setParams({ value : event.getParam("selectedlist") });
+        
+        action.setCallback(this,$A.getCallback(function(response){
+            var state = response.getState();
+            
+            if(state=="SUCCESS"){
+                component.set("v.mydata",response.getReturnValue());  
+                				helper.hideSpinner(component);
+
+            } else if(state=="ERROR"){
+                var errors = response.getError();
+                console.error(errors);
+                
+            }
+        }));
+        $A.enqueueAction(action);
+    },
+    
+    getAllAssignments :function(component,event,helper){
+        
+        var action = component.get("c.getAllAssignmentValues");
+        action.setCallback(this,$A.getCallback(function(response){
+            var state= response.getState();
+            
+            if(state=="SUCCESS"){
+                component.set("v.mydata",response.getReturnValue());
+                				helper.hideSpinner(component);
+
+            
+            }else if(state=="ERROR"){
+                 var errors = response.getError();
+                 console.error(errors);
+            }       
+        }));
+        
+        $A.enqueueAction(action)
+    },
+    
+    navigateAssignment : function(component,event,helper){
+        
+         var navService = component.find("navService");
+         var pageReference = component.get("v.pageReference");
+         //event.preventDefault();
+         navService.navigate(pageReference);
+     },
+    viewNoteshelper : function(component,event,helper){
+       
+        debugger;
+        
+       // var selectedItem = event.currentTarget;
+        
+        var recId = event.currentTarget.id;
+        console.log(recId);
+        
+        var action = component.get("c.getAllNotes");
+        
+        action.setParams({ RecId : recId });
+        
+        action.setCallback(this,$A.getCallback(function(response){
+            var state= response.getState();
+            
+            if(state=="SUCCESS"){
+                console.log(response.getReturnValue());
+                component.set("v.myNotes",response.getReturnValue());
+                				helper.hideSpinner(component);
+
+            
+            }else if(state=="ERROR"){
+                 var errors = response.getError();
+                 console.error(errors);
+            }       
+        }));
+        
+        $A.enqueueAction(action)
+        
+     },
+    showSpinner: function (component, event, helper) {
+        debugger;
+        var spinner = component.find("mySpinner");
+        $A.util.removeClass(spinner, "slds-hide");
+    },
+    
+    hideSpinner: function (component, event, helper) {
+        debugger;
+        var spinner = component.find("mySpinner");
+        $A.util.addClass(spinner, "slds-hide");
+    }
+})
