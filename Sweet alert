@@ -1,0 +1,11 @@
+Upload the sweet alert zip file as a staticResource File..
+
+<ltng:require scripts="{!$Resource.VME_SweetAlert}"/>
+
+
+swal.fire({
+        title: "Success!",
+        text: "File Uploaded successfully.",
+        type: "success",
+        timer: 3000
+    });
