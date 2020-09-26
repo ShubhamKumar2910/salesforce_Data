@@ -1,0 +1,27 @@
+  List<Messaging.SingleEmailMessage> mails = 
+  new List<Messaging.SingleEmailMessage>();
+  
+      Messaging.SingleEmailMessage mail = 
+      new Messaging.SingleEmailMessage();
+    
+      List<String> sendTo = new List<String>();
+      sendTo.add(myContact.Email);
+      mail.setToAddresses(sendTo);
+    
+      mail.setReplyTo('sirdavid@bankofnigeria.com');
+      mail.setSenderDisplayName('Official Bank of Nigeria');
+    
+      List<String> ccTo = new List<String>();
+      ccTo.add('business@bankofnigeria.com');
+      mail.setCcAddresses(ccTo);
+
+      mail.setSubject('URGENT BUSINESS PROPOSAL');
+      String body = 'Dear ' + myContact.FirstName + ', ';
+      body += 'your bank account # so I may deposit these funds.';
+      mail.setHtmlBody(body);
+    
+      mails.add(mail);
+    }
+  }
+  Messaging.sendEmail(mails);
+}
