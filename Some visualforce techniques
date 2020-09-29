@@ -1,0 +1,4 @@
+//To change the format on vf page of date..
+<apex:outputText value="{0,date,MM/dd/yyyy}" >  
+    <apex:param value="{!dateField}"/>  
+</apex:outputText>    
