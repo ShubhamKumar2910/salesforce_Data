@@ -1,2 +1,5 @@
 //When you dont have to get paragraph tag or tag...
 <lightning:formattedRichText >
+//To include br in cmp
+<aura:unescapedHtml value="{!v.self_Ass_Values}" />
+                       
