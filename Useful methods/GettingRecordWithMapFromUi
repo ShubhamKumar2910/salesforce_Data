@@ -1,0 +1,87 @@
+// Just pass the map from javscript with API names and values to be queried......
+
+@Auraenabled
+    public static List<Mandate__c> getAssignRec(Map<String,List<String>> fetchdata)
+    {
+        try{
+            system.debug('fetchdata'+fetchdata);
+            List<String> fieldvalue = new List<String>();
+            
+            String fields = '';
+            
+            for(String str : fetchdata.keySet())
+            {
+                if(fetchData.get(str) !=null && !fetchData.get(str).isEmpty())
+                {
+                    if(fields.length() == 0)
+                    {
+                        fields += ' (';
+                    }else
+                    {
+                        fields += ' AND (';
+                    }
+                    
+                    String innerVar = str+'=';
+                    
+                    List<String> fieldValues=fetchdata.get(str);
+                    
+                    for(Integer i=0;i<fieldValues.size();i++)
+                    {
+                        if(i==0)
+                        {
+                            if(fieldValues[i].contains('-'))
+                            {
+                                fields += innerVar+' '+fieldValues[i]; 
+                            }
+                            else
+                            {
+                                fields += innerVar+'\''+fieldValues[i]+'\'';    
+                            }
+                            
+                            
+                        }else
+                        {
+                            system.debug('fieldValues[i]'+fieldValues[i]);
+                            
+                            fields +=' '+'OR '+innerVar+'\''+fieldValues[i]+'\'';
+                        }
+                    }
+                    fields += ' )';
+                }
+                else
+                {
+                    
+                }
+                
+            }
+            
+            System.debug('@@@@'+fields);
+            
+            String queryString = 'SELECT Id, Company__r.Name, Name, Company__r.Industry_Types__c, Status__c, Assignment_Status__c, Mandate_Start_Date__c,Job_Function__c,Partner__r.name,Partner_2__r.name, Level__c,Number_of_candidates__c,number_of_days__c From Mandate__c where'+fields+' Limit 49999' ;
+            
+            System.debug('@@@@'+queryString);
+            
+            List<Mandate__c> returnList = new List<Mandate__c>();
+            
+            List<Mandate__c> lstofAssgn =  Database.query(queryString);
+            
+            count= 0;
+            
+            system.debug(lstofAssgn);
+            Set<Id> mandateIds =  new Set<Id>();
+            for(Mandate__C man : lstofAssgn) 
+            {
+                Count++;
+                returnList.add(man);
+                mandateIds.add(man.Id);
+            }
+            
+            return returnList;
+        }
+        catch(Exception e)
+        {
+            system.debug('Error'+e.getMessage()+'error line'+e.getLineNumber());
+            return null;
+        }
+    }
+   
