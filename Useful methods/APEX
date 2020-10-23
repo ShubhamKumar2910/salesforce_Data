@@ -3,21 +3,22 @@
 String test = Label.<custom label name>;
 
 //Custom Setting Values:
+
 Custom setting Name : Months_For_Task__c
 Values defined in it : month_Values__c
-        List<Months_For_Task__c> mcs = Months_For_Task__c.getall().values();
-        
-   if(!mcs.isEmpty()){
-   (mcs[0].month_Values__c) }
-   
+List<Months_For_Task__c> mcs = Months_For_Task__c.getall().values();
+
+if(!mcs.isEmpty()){
+(mcs[0].month_Values__c) }
+
 // Custom Metadata Type..
+
 custom metadata name == Assignment_Stage_Configuration__mdt;
 Get_Status_Value__c == name from metadata;
 
-  List<Assignment_Stage_Configuration__mdt> apiKey 					= [SELECT Get_Status_Value__c,List_View_Name__c,Label FROM Assignment_Stage_Configuration__mdt ];
-        Map<String,String> teamNameAndMembers 	= new Map<String,String>();
-        
-        for(Assignment_Stage_Configuration__mdt td :apiKey ){
-            teamNameAndMembers.put(td.List_View_Name__c,td.Get_Status_Value__c);
-        }
-      
+List<Assignment_Stage_Configuration__mdt> apiKey = [SELECT Get_Status_Value__c,List_View_Name__c,Label FROM Assignment_Stage_Configuration__mdt ];
+Map<String,String> teamNameAndMembers 	= new Map<String,String>();
+
+for(Assignment_Stage_Configuration__mdt td :apiKey ){
+teamNameAndMembers.put(td.List_View_Name__c,td.Get_Status_Value__c);
+}
