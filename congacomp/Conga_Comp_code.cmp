@@ -1,7 +1,4 @@
-# MyfirstRe
-Will start the github now..
 <aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" Controller="CongaController" >	
-    
     
     <aura:attribute name="recordId" type="string" />
     <aura:attribute name="recordError" type="string" access="private" />
@@ -58,7 +55,6 @@ Will start the github now..
 </aura:component>
 <aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" Controller="CongaController" >	
     
-    
     <aura:attribute name="recordId" type="string" />
     <aura:attribute name="recordError" type="string" access="private" />
     <aura:attribute name="checkSpinner" type="boolean" default="false"/>
@@ -67,9 +63,7 @@ Will start the github now..
     <aura:attribute name="attachmentId" type= "String" default=""/>
     <aura:attribute name="displaycondetails" default="false" type="Boolean"/>
     <aura:attribute name="modalHeader" type="String"/>
-    
-    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
-    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>    
     <aura:if isTrue="{!v.loader}">    
         <div aura:id="spinnerId" class="slds-spinner_container">
             <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
@@ -79,10 +73,8 @@ Will start the github now..
             </div>
         </div>
     </aura:if>
-    
     <Lightning:card class="slds-m-around_xx-small slds-m-top_none slds-m-bottom_none slds-card__body">
         <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
-        
         <div class="slds-grid slds-gutters">
             <div class="slds-col">
                 <span></span>
