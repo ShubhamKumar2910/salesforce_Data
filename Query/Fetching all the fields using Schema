@@ -1,7 +1,4 @@
 public class AssignmentProcessNotesController {
-    
-    
-    
     @AuraEnabled 
     public static Assignment_Notes__c fetchNotes(Id recId)
     {
@@ -20,20 +17,11 @@ public class AssignmentProcessNotesController {
                 strFields = strFields + ' , ' + fieldName;
             }
         }
-        
         system.debug('recId'+recId);
         query = 'select ' + strFields + ' from ' + SobjectApiName + ' where Assignment_Research__c =:recId ';
-        
         system.debug('notesList'+query);
-        
         List <Assignment_Notes__c> notesList = Database.query(query);
-        
         system.debug('notesList'+notesList);
-        
         return notesList[0];
-        
-        
-    }
-    
-    
+     }
 }
