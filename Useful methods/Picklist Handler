@@ -1,27 +1,55 @@
 
 @AuraEnabled
 public static List<String> getFieldsLabelName(){
-    Peoplelist__c searchPeople=Peoplelist__c.getValues('Contact');
-    String FieldLabel=searchPeople.FieldLabelName__c;
-    List<String> fieldsLabelName=FieldLabel.split(',');
-    return fieldsLabelName;
+Peoplelist__c searchPeople=Peoplelist__c.getValues('Contact');
+String FieldLabel=searchPeople.FieldLabelName__c;
+List<String> fieldsLabelName=FieldLabel.split(',');
+return fieldsLabelName;
 }
 @AuraEnabled
 public static List<String> getFieldsAPIName(){
-    Peoplelist__c searchPeople=Peoplelist__c.getValues('Contact');
-    String FieldLabel=searchPeople.FieldApiName__c;
-    List<String> fieldsAPIName=FieldLabel.split(',');
-    return fieldsAPIName;
+Peoplelist__c searchPeople=Peoplelist__c.getValues('Contact');
+String FieldLabel=searchPeople.FieldApiName__c;
+List<String> fieldsAPIName=FieldLabel.split(',');
+return fieldsAPIName;
 }
 //A method to call both the fields label and Api name
 @AuraEnabled
 public static Map<String,List<String>> getFields(){
-    List<String> labelList=PickListHandler.getFieldsLabelName();
-    //labelList.add('Linked In');
-    List<String> apiList=PickListHandler.getFieldsAPIName();
-    //labelList.add('LinkedIn_URL__c');
-    Map<String,List<String>> fieldList=new Map<String,List<String>>();
-    fieldList.put('Label',labelList);
-    fieldList.put('API', apiList);
-    return fieldList;
+List<String> labelList=PickListHandler.getFieldsLabelName();
+//labelList.add('Linked In');
+List<String> apiList=PickListHandler.getFieldsAPIName();
+//labelList.add('LinkedIn_URL__c');
+Map<String,List<String>> fieldList=new Map<String,List<String>>();
+fieldList.put('Label',labelList);
+fieldList.put('API', apiList);
+return fieldList;
 }
+@AuraEnabled
+public static String[] picklist_values(String object_name, String field_name) 
+{
+    String[] values = new String[]{};
+        String[] types = new String[]{object_name};
+            Schema.DescribeSobjectResult[] results = Schema.describeSObjects(types);
+    for(Schema.DescribeSobjectResult res : results) 
+    {
+        for (Schema.PicklistEntry entry : res.fields.getMap().get(field_name).getDescribe().getPicklistValues()) 
+        {
+            if (entry.isActive()) {values.add(entry.getValue());}
+        }
+    }
+    return values;
+}
+
+@AuraEnabled
+public static Map<String,List<String>> getAllPickVal(List<String> fieldList,String obj) 
+{
+    Map<String,List<String>> pickvalByFieldName = new Map<String,List<String>>();
+
+    for(String str:fieldList)
+    {
+        pickvalByFieldName.put(str,picklist_values(obj,str));
+    }
+    return pickvalByFieldName;   
+}
+
