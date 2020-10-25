@@ -1,67 +1,39 @@
 <apex:page controller="DataDisplayController" renderAs="pdf">
+    
+    <apex:image value="/resource/EnglishAssessmentHeaderPDF" width="100%" rendered="{!isEnglish}"/>
+    <apex:image value="/resource/FrenchAssessmentHeaderPDF" width="100%" rendered="{!!isEnglish}"/>
+    
+    <br/>
     <apex:form >
-        <apex:pageBlock rendered="{!language=='English'}">
-            <apex:sectionHeader title="Self Assessment"/>
-            <apex:pageBlockSection >
-                <h3>Key Accomplishments</h3>
-                <p>{!keyAccomp}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>Experience Gap</h3>
-                <p>{!exprGap}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>Areas for Development</h3>
-                <p>{!arDev}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>Personality and Leadership</h3>
-                <p>{!perImg}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>Relevent Experience</h3>
-                <p>{!relExp}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                   <h3>Unique Characteristics</h3>
-                    <p>{!uniqChar}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                    <h3>Candidate Motivation</h3>
-                    <p>{!candidateMot}</p>
-            </apex:pageBlockSection>
+        <apex:pageBlock >
+            <div style="text-align:center;color:#074494;font-size:20px">
+                <b>
+                    {!selfAss}
+                </b>
+            </div>
+            <br/>
+            <table  cellspacing="0" width="100%"> 
+                <tr> 
+                    <td width="50%"><b> <apex:outputText value="{!candidateName}" escape="false" />  </b>  </td>
+                    <td width="50%"><b>Position: </b> <apex:outputText value="{!assignmentTitle}" escape="false" />    </td>
+                </tr>
+                <tr> 
+                    
+                    <td width="50%"><b>Date: </b> <apex:outputText value="{!selfAssessmentDate}" escape="false" />    </td>
+                    <td width="50%"><b>Company: </b> <apex:outputText value="{!companyName}" escape="false" />    </td>
+                </tr>
+                
+            </table><br/>
+            <apex:repeat value="{!keyset}" var="k">
+                <div style="background-color:#074494;padding:5px;">
+                    <b>
+                        <apex:outputText value="{!k}" escape="false" style="color:white;padding-left:1px;padding-top:5px;padding-bottom:5px;"/>
+                    </b> 
+                </div>
+                <apex:outputText value="{!responseByQuestion[k]}" escape="false"/>
+                <br/>
+            </apex:repeat>
         </apex:pageBlock>
-                <apex:pageBlock rendered="{!language=='French'}">
-            <apex:sectionHeader title="Self Assessment"/>
-            <apex:pageBlockSection >
-                <h3>Principales réalisations</h3>
-                <p>{!keyAccomp}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>Écarts des expériences et connaissances</h3>
-                <p>{!exprGap}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>zone de développement</h3>
-                <p>{!arDev}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>Personalité et style de leadership</h3>
-                <p>{!perImg}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                <h3>Expériences pertinentes</h3>
-                <p>{!relExp}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                   <h3>Caractéristiques uniques </h3>
-                    <p>{!uniqChar}</p>
-            </apex:pageBlockSection>
-            <apex:pageBlockSection >
-                    <h3>Motivation du candidat</h3>
-                    <p>{!candidateMot}</p>
-            </apex:pageBlockSection>
-        </apex:pageBlock>
-
+        
     </apex:form>
 </apex:page>
