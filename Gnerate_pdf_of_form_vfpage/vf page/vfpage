@@ -1,70 +1,61 @@
 <apex:page controller="DataDisplayController" showHeader="false" standardStylesheets="false">
+    <style>
+        body, html { height: 90%; }
+    </style>
     <apex:includeLightning />
     
-	<!-- Page code -->
     <apex:form >
-		<apex:inputhidden id="hidData" value="{!PDFData}"/>
-        <apex:inputhidden id="hidData1" value="{!exprGap}"/>
-        <apex:inputhidden id="hidData2" value="{!arDev}"/>
-        <apex:inputhidden id="hidData3" value="{!perImg}"/>
-        <apex:inputhidden id="hidData4" value="{!relExp}"/>
-        <apex:inputhidden id="hidData5" value="{!uniqChar}"/>
-        <apex:inputhidden id="hidData6" value="{!keyAccomp}"/>
-        <apex:inputhidden id="hidData7" value="{!candidateMot}"/> 
-        <apex:inputhidden id="hidData8" value="{!language}"/> 
-
-
-    
-    	<apex:actionfunction name="jsGeneratePDF" action="{!downloadPDF}" />
         
         <div id="lightning" />
         
-    <script>
-   
-      
-       
-            
-           function saveData(data, callback){
-            debugger;
-            var hidData = document.getElementById('{!$Component.hidData}');
-            document.getElementById('{!$Component.hidData6}').value = data.keyAccomplishments;
-            document.getElementById('{!$Component.hidData1}').value = data.expreinceGap;
-            document.getElementById('{!$Component.hidData2}').value = data.areadDev;
-            document.getElementById('{!$Component.hidData3}').value = data.perImg;
-            document.getElementById('{!$Component.hidData4}').value = data.relExp;
-            document.getElementById('{!$Component.hidData5}').value = data.uiqueChar;
-            document.getElementById('{!$Component.hidData7}').value = data.candidateMotivation;   
-            document.getElementById('{!$Component.hidData8}').value = data.language;   
-   
-            
-            //invoke PDF Generation
-            jsGeneratePDF();
-         
-            //invoke callback;
-            if(typeof callback == 'function') callback();
-        } 
-            
-            
-            
-            
-            
-        //This will be used to get user exp i.e.Classic,SF1 ,LEX
+        <apex:pageBlock >
+            <apex:actionFunction action="{!downloadPDF}" name="download" />
+            <apex:actionFunction action="{!testinput}" name="passToController" oncomplete="updateAccount()" reRender="abc">
+                <apex:param value="" name="question"/>
+                <apex:param value="" name="response"/>
+            </apex:actionFunction>
+        </apex:pageBlock>
+        
+        <script>
+        
+        var j=0;
+        var allData=[];
+        
+        
         function loadComponents(){
             debugger;
-                var myUserContext = "{!$User.UITheme}";
-                var myRecordId = "{!$CurrentPage.parameters.Id}";
-                //alert(myRecordId );
-                myRecordId=myRecordId.substring(0, 18);
-                //alert(myRecordId );
-                $Lightning.use("c:SelfAssessmentApp", function() {
-                    //Write a function that creates the component on the page
-                    $Lightning.createComponent("c:SelfAssessmentCmp",{
-                        recordId : myRecordId,
-                        sendData : saveData
-                    },"lightning",function(cmp) {});
-                });
-         }
+            var myUserContext = "{!$User.UITheme}";
+            var myRecordId = "{!$CurrentPage.parameters.Id}";
+            myRecordId=myRecordId.substring(0, 18);
+            $Lightning.use("c:SelfAssessmentApp", function() {
+                $Lightning.createComponent("c:SelfAssessmentCmp",{
+                    recordId : myRecordId,
+                    sendData : myScript
+                },"lightning",function(cmp) {});
+            });
+        }
+        
         loadComponents();
+        
+        function myScript(data){
+            j = 0;
+            debugger;
+            console.log(data.label);
+            allData=data.label;
+            passToController(allData[j].Question_name__c,allData[j].Response__c);
+            
+            
+        }
+        function updateAccount(){
+            debugger;
+            if(j==allData.length-1){
+                download();
+            }else{
+                j++;
+                passToController(allData[j].Question_name__c,allData[j].Response__c);
+            }
+        }
+        
         </script>
     </apex:form>
 </apex:page>
