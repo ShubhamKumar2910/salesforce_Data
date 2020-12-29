@@ -1,0 +1,20 @@
+ <ui:inputCheckbox  class="myCheckbox" label="{!comp}" change="{!c.selectCompetency}" value="false" />
+selectCompetency: function(component,event,helper){
+        debugger;
+        var selectedcomp = [];
+        var boolean = event.getSource().get("v.value");
+        if(boolean == true){
+            var comp = event.getSource().get("v.label");
+            selectedcomp = component.get("v.selectedComp");
+            selectedcomp.push(comp);
+        }else{
+            selectedcomp = component.get("v.selectedComp");   
+            var comp = event.getSource().get("v.label");
+            if(selectedcomp.includes(comp))
+            {
+                const index = selectedcomp.indexOf(comp);
+                selectedcomp.splice(index, 1);
+            }
+        }
+        component.set("v.selectedComp",selectedcomp);
+    },
