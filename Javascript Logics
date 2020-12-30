@@ -1,3 +1,4 @@
+ <-- this can be used to select and deselct calues  for an input box-->
  <ui:inputCheckbox  class="myCheckbox" label="{!comp}" change="{!c.selectCompetency}" value="false" />
 selectCompetency: function(component,event,helper){
         debugger;
@@ -18,3 +19,15 @@ selectCompetency: function(component,event,helper){
         }
         component.set("v.selectedComp",selectedcomp);
     },
+
+<-- when u are getting a data in the form of map from apex and wanna sort it as per your requirement-->
+
+  unorderedmap = BDWrapper['fieldMap'];
+
+<this will consist of the keyset order..>
+        var order = ['Company','Assignment','Stage','Amount','Probability','Contact','Industry Type'];
+
+        var orderedmap = new Object();
+        order.forEach(function (item) { 
+            orderedmap[item] = unorderedmap[item]; 
+   }); 
