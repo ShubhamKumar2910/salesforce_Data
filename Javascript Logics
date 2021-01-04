@@ -1,5 +1,5 @@
  <-- this can be used to select and deselct calues  for an input box-->
- <ui:inputCheckbox  class="myCheckbox" label="{!comp}" change="{!c.selectCompetency}" value="false" />
+<ui:inputCheckbox  class="myCheckbox" label="{!comp}" change="{!c.selectCompetency}" value="false" />
 selectCompetency: function(component,event,helper){
         debugger;
         var selectedcomp = [];
@@ -31,3 +31,20 @@ selectCompetency: function(component,event,helper){
         order.forEach(function (item) { 
             orderedmap[item] = unorderedmap[item]; 
    }); 
+
+
+----------------------------------------------------------
+Splicing an array for a matched value and updating..
+
+ var noteId = event.getSource().get("v.value");
+        
+        var noteList = component.get("v.NotesList");
+        
+        for (var i = 0; i < noteList.length; i++) {
+            if(noteList[i].Id == noteId ){
+                noteList.splice(i, 1);
+            }
+        }
+         
+        component.set("v.NotesList",noteList);
+       
