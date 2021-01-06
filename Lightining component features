@@ -2,4 +2,21 @@
 <lightning:formattedRichText >
 //To include br in cmp
 <aura:unescapedHtml value="{!v.self_Ass_Values}" />
-                       
+-----------------------------------------------------------
+Lightning tabs can be switched on the basis of values from formula using this method:
+handleChange: function(component, event, helper) {
+      var abc = component.get("v.Is_English");
+      if(abc == true){
+           component.set("v.tabId",'1'); 
+      }else{
+          component.set("v.tabId",'2'); 
+      }
+  },
+is english a boolean attribute and tabid will be the attribute for setting the order;
+ <lightning:tabset selectedTabId="{!v.tabId}" aura:id="tabs" >
+ <lightning:tabset selectedTabId="{!v.tabId}" aura:id="tabs" >
+  </lightning:tab>
+ <lightning:tab label="2nd Language" id="2">
+ </lightning:tab>
+ </lightning:tabset> 
+------------------------------------------------------------
