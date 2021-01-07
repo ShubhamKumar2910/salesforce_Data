@@ -1,0 +1,2 @@
+ { IF "<<Checkbox_MergeField>>" = "True" "Yes" "No" }
+ example : Word: { IF “«OPPORTUNITY_AMOUNT»” > “10000” “«OPPORTUNITY_SERVICE_PACKAGE»” “” }
