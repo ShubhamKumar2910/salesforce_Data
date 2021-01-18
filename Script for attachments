@@ -1,44 +1,77 @@
 public class BatchForPsyTest implements Database.Batchable<sObject>, Database.Stateful {
-    
-    public Integer recordsProcessed = 0;
-    public Database.QueryLocator start(Database.BatchableContext bc) {
-        return Database.getQueryLocator(
-            'select id from contact where Has_Psy__c = false And Record_Updated__c = false ' );
-    }
-    public void execute(Database.BatchableContext bc, List<Contact> scope){
-        // process each batch of records
-        List<Contact> contacts = new List<Contact>();
-        for (Contact con : scope) {
-            con.Record_Updated__c = true;
-            contacts.add(con);
-        }
-        update contacts;
-        
-        List<Contact> ContactToBeUpdatedwithPSy = new List<Contact>();
-        List<Attachment> attList = [SELECT Id, ParentId FROM Attachment WHERE ParentId IN :scope AND Name LIKE '%PSy%' ORDER BY LastModifiedDate DESC];
-        set<ID> ConWithPsy= new set<ID>();
-        
-        for(Attachment att: attList){
-            ConWithPsy.add(att.ParentId) ;
-        }
-        List<Contact> ContactToBeUpdated = [Select id,Has_Psy__c,name from Contact where id in: ConWithPsy];
-        
-        for(Contact con : ContactToBeUpdated){
-            ContactToBeUpdatedwithPSy.add(new Contact(id=con.Id,Has_Psy__c = true));
-        }
-        update ContactToBeUpdatedwithPSy;
-        
-    }
-    public void finish(Database.BatchableContext bc){
-        System.debug(recordsProcessed + ' records processed!');
-        AsyncApexJob job = [SELECT Id, Status, NumberOfErrors,
-                            JobItemsProcessed,
-                            TotalJobItems, CreatedBy.Email
-                            FROM AsyncApexJob
-                            WHERE Id = :bc.getJobId()];
-        
-    }
-    
-    --------------------------------------------------------------------------------------------------
-    Method for checking  an attachemnt in trigger
+
+public Integer recordsProcessed = 0;
+public Database.QueryLocator start(Database.BatchableContext bc) {
+return Database.getQueryLocator(
+'select id from contact where Has_Psy__c = false And Record_Updated__c = false ' );
 }
+public void execute(Database.BatchableContext bc, List<Contact> scope){
+// process each batch of records
+List<Contact> contacts = new List<Contact>();
+for (Contact con : scope) {
+con.Record_Updated__c = true;
+contacts.add(con);
+}
+update contacts;
+
+List<Contact> ContactToBeUpdatedwithPSy = new List<Contact>();
+List<Attachment> attList = [SELECT Id, ParentId FROM Attachment WHERE ParentId IN :scope AND Name LIKE '%PSy%' ORDER BY LastModifiedDate DESC];
+set<ID> ConWithPsy= new set<ID>();
+
+for(Attachment att: attList){
+ConWithPsy.add(att.ParentId) ;
+}
+List<Contact> ContactToBeUpdated = [Select id,Has_Psy__c,name from Contact where id in: ConWithPsy];
+
+for(Contact con : ContactToBeUpdated){
+ContactToBeUpdatedwithPSy.add(new Contact(id=con.Id,Has_Psy__c = true));
+}
+update ContactToBeUpdatedwithPSy;
+
+}
+public void finish(Database.BatchableContext bc){
+System.debug(recordsProcessed + ' records processed!');
+AsyncApexJob job = [SELECT Id, Status, NumberOfErrors,
+JobItemsProcessed,
+TotalJobItems, CreatedBy.Email
+FROM AsyncApexJob
+WHERE Id = :bc.getJobId()];
+
+}
+
+--------------------------------------------------------------------------------------------------
+Method for checking  an attachemnt in trigger
+
+
+public static void updatePSYAndHasCV(List<Attachment> attachments){
+List<Id> parentId = new List<Id>();
+List<Contact> contactswithPSY = new List<Contact>();
+
+Map<String, Integer> nbPSYByContactId = new Map<String, Integer>();
+
+for(Attachment att: attachments) {
+parentId.add(att.ParentId);
+}
+
+for(AggregateResult result: [SELECT ParentId, COUNT(Id) FROM Attachment WHERE ParentId IN :parentId AND Name LIKE 'CV%' GROUP BY ParentId]) {
+if(Integer.valueOf(result.get('expr0'))>0) {
+nbCVByContactId.put(String.valueOf(result.get('ParentId')),Integer.valueOf(result.get('expr0')));
+}
+}
+contactswithPSY = [SELECT Id FROM Contact WHERE Id IN:parentId];
+
+if(contactswithPSY.size()>0) {
+for(Contact contact:contactswithPSY) {
+if(nbPSYByContactId.containsKey(contact.Id) ) {
+if(nbPSYByContactId.get(contact.Id)>0)
+contact.Has_Psy__c  = true;
+else 
+contact.Has_Psy__c  = false;
+} else {
+contact.Has_Psy__c  = false;
+}
+}
+update contactswithPSY;
+}
+}
+
