@@ -1,0 +1,206 @@
+public class SearchAssignemntCtrl
+{  
+    @AuraEnabled
+    public static List<String> getFieldsLabelName(){
+        SearchAssignmentColumnList__c searchPeople=SearchAssignmentColumnList__c.getValues('Assignment');
+        String FieldLabel=searchPeople.FieldLabelName__c;
+        List<String> fieldsLabelName=FieldLabel.split(',');
+        return fieldsLabelName;
+    }
+    @AuraEnabled
+    public static List<String> getFieldsAPIName(){
+        SearchAssignmentColumnList__c searchPeople=SearchAssignmentColumnList__c.getValues('Assignment');
+        String FieldLabel=searchPeople.FieldApiName__c;
+        List<String> fieldsAPIName=FieldLabel.split(',');
+        return fieldsAPIName;
+    }
+    @AuraEnabled
+    public static Map<String,List<String>> getFields(){
+        List<String> labelList=SearchAssignemntCtrl.getFieldsLabelName();
+        List<String> apiList=SearchAssignemntCtrl.getFieldsAPIName();
+        Map<String,List<String>> fieldList=new Map<String,List<String>>();
+        fieldList.put('Label',labelList);
+        fieldList.put('API', apiList);
+        return fieldList;
+    }
+    @AuraEnabled
+    public static Map<String,List<String>> UserList(){
+        
+        Map<String,List<String>> UserNames = new Map<string,List<String>>();
+        List<String> Username= new List<string>();
+        List<String> UserID= new List<string>();
+        
+        for(User aUser : [Select Id, Name from User WHERE IsActive = TRUE ORDER BY Name]){
+            Username.add(aUser.Name);
+            UserID.add(aUser.Id) ;
+        }
+        
+        UserNames.put('UserName',Username);
+        UserNames.put('UserID',UserID);
+        return UserNames; 
+        
+    }
+    
+    public static Integer count;
+    @AuraEnabled
+    public static String[] picklist_values(String object_name, String field_name) 
+    {
+        String[] values = new String[]{};
+            String[] types = new String[]{object_name};
+                Schema.DescribeSobjectResult[] results = Schema.describeSObjects(types);
+        for(Schema.DescribeSobjectResult res : results) 
+        {
+            for (Schema.PicklistEntry entry : res.fields.getMap().get(field_name).getDescribe().getPicklistValues()) 
+            {
+                if (entry.isActive()) {values.add(entry.getValue());}
+            }
+        }
+        return values;
+    }
+    
+    @AuraEnabled
+    public static Map<String,List<String>> getAllPickVal(List<String> fieldList,String obj) 
+    {
+        Map<String,List<String>> pickvalByFieldName = new Map<String,List<String>>();
+        
+        for(String str:fieldList)
+        {
+            pickvalByFieldName.put(str,picklist_values(obj,str));
+        }
+        return pickvalByFieldName;   
+    }
+    
+    @Auraenabled
+    public static List<Mandate__c> getAssignRec(Map<String,List<String>> fetchdata)
+    {
+        try{
+            system.debug('fetchdata'+fetchdata);
+            List<String> fieldvalue = new List<String>();
+            
+            String fields = '';
+            
+            for(String str : fetchdata.keySet())
+            {
+                if(fetchData.get(str) !=null && !fetchData.get(str).isEmpty())
+                {
+                    if(fields.length() == 0)
+                    {
+                        fields += ' (';
+                    }else
+                    {
+                        fields += ' AND (';
+                    }
+                    
+                    String innerVar;
+                    if(str == 'Mandate_Start_Date__c'){
+                        innerVar = str+'>';
+                    }
+                    else if(str == 'Mandate_End_Date__c'){
+                        innerVar = str+'<';
+                    }
+                    else if(str == 'Company_Name_French__c'){
+                        innerVar = str+' like ';
+                    }
+                    else if(str == 'Name'){
+                        innerVar = str+' like ';
+                    }
+                    else{
+                        innerVar = str+'=';
+                    }
+                    
+                    List<String> fieldValues=fetchdata.get(str);
+                    
+                    for(Integer i=0;i<fieldValues.size();i++)
+                    {
+                        if(i==0)
+                        {
+                            if(innerVar.contains('like')){
+                                if(fieldValues[i].contains('-'))
+                                {
+                                    fields += innerVar+'%'+fieldValues[i]+'%'; 
+                                }
+                                else
+                                {
+                                    fields += innerVar+'\'%'+fieldValues[i]+'%'+'\'';    
+                                }
+                            }
+                            else{
+                                if(fieldValues[i].contains('-'))
+                                {
+                                    fields += innerVar+' '+fieldValues[i]; 
+                                }
+                                else
+                                {
+                                    fields += innerVar+'\''+fieldValues[i]+'\'';    
+                                }
+                            }
+                            
+                        }else
+                        {
+                            system.debug('fieldValues[i]'+fieldValues[i]);
+                            
+                            fields +=' '+'OR '+innerVar+'\''+fieldValues[i]+'\'';
+                        }
+                    }
+                    fields += ' )';
+                }
+                else
+                {
+                    
+                }
+            }
+            
+            System.debug('@@@@'+fields);
+            
+            String queryString = 'SELECT Id, Company__r.Name, Name, Company__r.Industry_Types__c, Status__c, Assignment_Status__c, Mandate_Start_Date__c,Job_Function__c,Partner__r.name,Partner_2__r.name, Level__c,Number_of_candidates__c,number_of_days__c From Mandate__c where'+fields+' Limit 49999' ;
+            
+            System.debug('@@@@'+queryString);
+            
+            List<Mandate__c> returnList = new List<Mandate__c>();
+            
+            List<Mandate__c> lstofAssgn =  Database.query(queryString);
+            
+            count= 0;
+            
+            system.debug(lstofAssgn);
+            Set<Id> mandateIds =  new Set<Id>();
+            for(Mandate__C man : lstofAssgn) 
+            {
+                Count++;
+                returnList.add(man);
+                mandateIds.add(man.Id);
+            }
+            
+            return returnList;
+        }
+        catch(Exception e)
+        {
+            system.debug('Error'+e.getMessage()+'error line'+e.getLineNumber());
+            return null;
+        }
+    }
+    
+    @AuraEnabled
+    public static String deleteRecord(List<Id> idList){
+        String res='';
+        Database.DeleteResult[] drList= Database.delete(idList,true);
+        for(Database.DeleteResult dr : drList) {
+            if (dr.isSuccess()) {
+                // Operation was successful, so get the ID of the record that was processed
+                System.debug('Successfully deleted account with ID: ' + dr.getId());
+                res='Success';
+            }
+            else {
+                // Operation failed, so get all errors                
+                for(Database.Error err : dr.getErrors()) {
+                    System.debug('The following error has occurred.');                    
+                    System.debug(err.getStatusCode() + ': ' + err.getMessage());
+                    System.debug('Account fields that affected this error: ' + err.getFields());
+                    res='unSucess';
+                }
+            }
+        }
+        return res;
+    }
+    
+}
