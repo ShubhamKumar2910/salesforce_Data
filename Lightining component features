@@ -20,3 +20,13 @@ is english a boolean attribute and tabid will be the attribute for setting the o
  </lightning:tab>
  </lightning:tabset> 
 ------------------------------------------------------------
+ <aura:if isTrue="{!v.searchAss}">
+       //CHECKING A SITUATION IN AURA IF AND ELSE
+       <aura:if isTrue="{!or(v.fieldName=='Name')}">
+            <a href="{! $Site.CurrentSiteUrl+'/lightning/cmp/c__AssignmentCandidatesPageComp?c__mandateId='+(v.recordId)}" target="_blank">{!v.fieldValue}</a>
+            <aura:set attribute="else">
+                {!v.fieldValue}
+            </aura:set>
+        </aura:if>
+       
+    </aura:if>
