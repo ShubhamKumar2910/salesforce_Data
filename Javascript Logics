@@ -47,4 +47,16 @@ Splicing an array for a matched value and updating..
         }
          
         component.set("v.NotesList",noteList);
-       
+-----------------------------------------------------------
+
+getting URL and jumping to it:
+
+ var host = window.location.pathname;
+ 
+  var urlEvent = $A.get("e.force:navigateToURL");
+            urlEvent.setParams({
+                'url': 'https://leadersinternational--test.lightning.force.com/lightning/page/home'
+            });
+            urlEvent.fire();
+            
+           
