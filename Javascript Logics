@@ -50,12 +50,13 @@ Splicing an array for a matched value and updating..
 -----------------------------------------------------------
 
 getting URL and jumping to it:
+Url will only take that path where u want to jump after the host name
 
  var host = window.location.pathname;
- 
-  var urlEvent = $A.get("e.force:navigateToURL");
+
+ var urlEvent = $A.get("e.force:navigateToURL");
             urlEvent.setParams({
-                'url': 'https://leadersinternational--test.lightning.force.com/lightning/page/home'
+                'url': '/lightning/page/home'
             });
             urlEvent.fire();
             
