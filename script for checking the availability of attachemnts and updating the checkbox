@@ -1,0 +1,36 @@
+SCRIPTS FOR CHECKING THE AVAILABILITY OF ATTACHEMENTS
+List<contact> contactIds = [select id from contact where Has_Psy__c = false limit 49000];
+List<Contact> ContactToBeUpdatedwithPSy = new List<Contact>();
+List<Attachment> attList = [SELECT Id, ParentId FROM Attachment WHERE ParentId IN :contactIds AND Name LIKE '%PSy%' ORDER BY LastModifiedDate DESC];
+set<ID> ConWithPsy= new set<ID>();
+
+for(Attachment att: attList){
+   ConWithPsy.add(att.ParentId) ;
+}
+
+List<Contact> ContactToBeUpdated = [Select id,Has_Psy__c,name from Contact where id in: ConWithPsy];
+
+for(Contact con : ContactToBeUpdated){
+    ContactToBeUpdatedwithPSy.add(new Contact(id=con.Id,Has_Psy__c = true));
+}
+system.debug('ConWithPsy'+ConWithPsy);
+system.debug('ConWithPsy'+ConWithPsy.size());
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+List<Mandate__c> MandateIds = [select id from Mandate__c where Is_Job_Description_Available__c = false limit 49000];
+List<Mandate__c> MandateToBeUpdatedwithJD = new List<Mandate__c>();
+List<Attachment> attList = [SELECT Id, ParentId FROM Attachment WHERE ParentId IN :MandateIds AND Name LIKE '%Job desc%' ORDER BY LastModifiedDate DESC];
+set<ID> ManWithJobDesc= new set<ID>();
+
+for(Attachment att: attList){
+   ManWithJobDesc.add(att.ParentId) ;
+}
+
+List<Mandate__c> MandateToBeUpdated = [Select id,Is_Job_Description_Available__c,name from Mandate__c where id in: ManWithJobDesc];
+
+for(Mandate__c man : MandateToBeUpdated){
+    MandateToBeUpdatedwithJD.add(new Mandate__c(id=man.Id,Is_Job_Description_Available__c = true));
+}
+system.debug('ManWithJobDesc'+ManWithJobDesc);
+system.debug('ManWithJobDesc'+ManWithJobDesc.size());
