@@ -1,1 +1,16 @@
+Trigger Best Practice and Usage of maps..
+----------------------------------------------------------------------
+making the instance of the class;
+updateBioTriggerHelper handlerInstance =  new updateBioTriggerHelper();
 
+public static Boolean isFirstRun = true;
+
+for (Before_insert and Before_Update)
+for checking if old values are not same as new one..
+  if(Trigger.isBefore && (Trigger.isInsert || Trigger.isUpdate)){
+  for (Application__c candidate : appList){
+              if (( candidate.Contact__c != oldMap.get(candidate.Id).Contact__c) && candidate.Contact__c == null ){
+                  candidate.addError('Contact cannot be removed from Related Assignment');
+              }		
+          }
+}
