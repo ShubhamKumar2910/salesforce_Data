@@ -4,6 +4,8 @@ making the instance of the class;
 updateBioTriggerHelper handlerInstance =  new updateBioTriggerHelper();
 
 public static Boolean isFirstRun = true;
+adding an error on an object...
+Sobject.addError('Error Messages');
 
 for (Before_insert and Before_Update)
 for checking if old values are not same as new one..
