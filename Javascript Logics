@@ -32,7 +32,15 @@ selectCompetency: function(component,event,helper){
             orderedmap[item] = unorderedmap[item]; 
    }); 
 
+--------------------------------------------------------------------------------------------
+//Object.keys(obj)  - this will give the keys in array
+Object.prototype.propertyIsEnumerable()
+Object.create()
+Object.getOwnPropertyNames()
+Object.values() - will give all the values
+Object.entries()
 
+Handling a map from apex
 ----------------------------------------------------------
 Splicing an array for a matched value and updating..
 
