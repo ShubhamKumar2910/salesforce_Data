@@ -549,3 +549,565 @@
     </aura:if>
     
 </aura:component>
+---------------------------------------------------------------------------------------------
+
+({  
+    doInit: function(component, event, helper) {
+        debugger;
+        var a = component.get("v.FromOnePager");
+        if(a == true){
+            debugger;
+            helper.MainPageDataFetcher(component,event,helper);  
+            
+            
+        }else{
+            debugger;
+            helper.onePagerInitialValue(component,event,helper);
+            helper.MainPageDataFetcher(component,event,helper);
+            helper.OnePagerData(component,event,helper);   
+            helper.RadarData(component,event,helper);   
+            helper.fetchDataHelper(component,event,helper);
+            helper.fetchOnePager(component,event,helper);
+            helper.getCVandBoardCVHelper(component,event,helper);
+            helper.showWarning(component,event,helper);
+        }
+    },
+   handleCheck : function(component, event, helper) {
+        var isChecked = component.find("DisclaimerCheckBox").get("v.checked");
+        component.set("v.Include_Compensation", isChecked);
+    },
+    DisplayCV: function(component,event,helper){
+        var cmpTarget = component.find('Modalbox');
+        var cmpBack = component.find('Modalbackdrop');
+        $A.util.removeClass(cmpBack,'slds-backdrop--open');
+        $A.util.removeClass(cmpTarget, 'slds-fade-in-open'); 
+        component.set("v.displayCVComp",true);
+        
+        var appId = event.getSource().get("v.value");
+        var manId = event.getSource().get("v.title");
+        var conID = component.get("v.recordId");
+        component.set("v.mandateRecId",manId);
+        component.set("v.applicationId",appId);
+        component.set("v.selectedConId",conID);
+        
+        helper.showWarning(component,event,helper);
+        helper.fetchDataHelper(component,event,helper);
+        helper.fetchOnePager(component,event,helper);
+        
+        helper.getCVandBoardCVHelper(component,event,helper);
+        component.set("v.onePagerWarning",false);
+    },
+    DisplayOP:function(component,event,helper){
+        debugger;
+        var canId = event.getSource().get("v.value");
+        
+        var action = component.get("c.getAttId");
+        action.setParams({
+            canId : canId,
+        });
+        
+        action.setCallback(this,function(response){
+            var result = response.getReturnValue();
+            debugger;
+            if(response.getState() == "SUCCESS"){
+                if(result!=null){
+                    component.set("v.attachmentId",result);
+                  //  component.set("v.isOpen",false);
+                    component.set("v.displayCV",true);
+                }else{
+                    component.set("v.displayCV",false);
+                    swal.fire({
+                        title: "Error!",
+                        text: "No Attachment Found",
+                        type: "success",
+                        timer: 3000
+                    });                    
+                }
+            }
+        })                
+        $A.enqueueAction(action);
+    },    
+    handleClick: function(component,event,helper){
+        debugger;
+        var selectedItem = event.currentTarget
+        var recId = selectedItem.dataset.record;
+        console.log(recId);
+        
+        var pageReference={
+            type: 'standard__component',
+            attributes: {
+                componentName:'c__AssignmentCandidatesPageComp'
+            },
+            state:{
+                "c__mandateId": recId
+            }    
+        };        
+        component.set("v.pageReference",pageReference);
+        
+        var navService = component.find("navService");
+        var pageReference = component.get("v.pageReference");
+        event.preventDefault();
+        navService.navigate(pageReference);
+    },
+    
+    back : function(component,event,helper){
+        component.set("v.displayOnePagerList",true);
+        component.set("v.displayOnePager",false);
+        component.set("v.displaySelfAssList",true);
+        component.set("v.displaySelfAss",false);
+        
+    },
+    closeModel: function(component,event,helper){
+        var cmpTarget = component.find('Modalbox');
+        var cmpBack = component.find('Modalbackdrop');
+        $A.util.removeClass(cmpBack,'slds-backdrop--open');
+        $A.util.removeClass(cmpTarget, 'slds-fade-in-open');
+        component.set("v.FromOnePager",false);
+        component.set("v.displayCVComp",false);
+        component.set("v.displayOPComp",false);
+    },
+    SetOnePagerId : function(component,event,helper)
+    {
+        var appId = event.getSource().get("v.value");
+        var action = component.get("c.get_Attach_id_OnePager");
+        
+        action.setParams({
+            "recordId": appId,
+            "mandateId":component.get("v.mandateRecId")
+        });
+        
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+                {
+                    component.set("v.onePagerId",storeResponse.OnePagerId);//onePagerFromConId
+                  //  component.set("v.onePagerFromConId",storeResponse[1]);
+                    component.set("v.displayOnePagerList",false);
+                    component.set("v.displayOnePager",true);
+                }
+            }else{}
+        }));
+        $A.enqueueAction(action);
+    },
+     SetOnePagerConId : function(component,event,helper)
+    {
+        debugger;
+        var OpFromConID = component.get("v.onePagerFromConId");
+        component.set("v.onePagerId",OpFromConID);
+        component.set("v.displayOnePagerList",false);
+        component.set("v.displayOnePager",true);
+
+    },
+    closeModal: function(component,event,helper){
+        var cmpTarget = component.find('Modalbox');
+        var cmpBack = component.find('Modalbackdrop');
+        $A.util.removeClass(cmpBack,'slds-backdrop--open');
+        $A.util.removeClass(cmpTarget, 'slds-fade-in-open'); 
+        component.set("v.displayCVComp",false);
+    },
+    displaySplitv : function(component,event,helper){
+        $A.util.addClass(component.find("cvView"), "slds-hide");
+        component.set("v.displaySplitView",true);
+        component.set("v.displayCVView",false);
+    },
+    createBioDoc : function(component, event, helper) {
+        helper.createBioDoc(component);
+    },
+    saveRecord: function(component,event,helper){
+        helper.saveContact(component,event,helper);
+        helper.createBioDoc(component);
+        helper.closeModel(component,event,helper); 
+    },
+    recordUpdated: function(component,event,helper)
+    {
+        helper.recordUpdated(component,event,helper);
+    },
+    
+    save: function(component,event,helper) {
+        debugger;
+        var selectedValues = component.get("v.one_Pager_Values");
+        var boolean = component.get("v.Include_Compensation");
+        var radarData = component.get("v.Radar_Values");
+        var selectedConValues = component.get("v.Contact_Values");
+      //  helper.saveRadarInfo(component,event,helper);
+        if(selectedValues.length != 0){
+            
+            var deleteList = component.get("v.deleteList");
+            var appid = component.get("v.applicationId");
+            var action = component.get("c.Create_One_Pager_Con_Rec");
+            
+            action.setParams({ConListtobeUpdated :selectedConValues,RadarListTobeUpdated :radarData, One_Pager_List : selectedValues,deleteList:deleteList,appid : appid,Compensation_To_Be_included:boolean});
+            
+            action.setCallback(this,function(response){
+                var result = response.getReturnValue();
+                debugger;
+                if(response.getState() === "SUCCESS"){
+                    {
+                        swal.fire({
+                            title: "Success",
+                            text: "One Pager Record created",
+                            type: "success",
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                       // component.set('v.displayCVComp',false);
+                    }
+                }
+            });
+            $A.enqueueAction(action);
+        }
+        else{
+            swal.fire({
+                title: "error",
+                text: "No values selected",
+                type: "error",
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+    },
+     SetSelAssId : function(component,event,helper){
+        debugger;
+        
+        var appId = event.getSource().get("v.value");
+        var action = component.get("c.get_Attach_id_OnePager");
+        action.setParams({
+            "recordId": appId,
+            "mandateId":component.get("v.mandateRecId")
+        });
+        
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+                {
+                   // component.set("v.SelfAssId",storeResponse[0]);
+                    component.set("v.SelfAssId",storeResponse.SelfAssId);
+                    component.set("v.displaySelfAssList",false);
+                    component.set("v.displaySelfAss",true);
+                }
+            }else{}
+        }));
+        $A.enqueueAction(action);
+    },
+})
+---------------------------------------------------------------------------------------------------------------------------------
+({
+    closeModel: function(component,event,helper){
+        var cmpTarget = component.find('Modalbox');
+        var cmpBack = component.find('Modalbackdrop');
+        $A.util.removeClass(cmpBack,'slds-backdrop--open');
+        $A.util.removeClass(cmpTarget, 'slds-fade-in-open'); 
+        component.set("v.displayOPComp",false);
+        
+    },
+    onePagerInitialValue: function(component,event,helper){
+        debugger;
+        var appID = component.get("v.applicationId");
+        
+        var action = component.get("c.get_Attach_id_OnePager");
+        action.setParams({
+            "recordId": appID,
+            "mandateId":component.get("v.mandateRecId")
+        });
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+                {
+                    if(storeResponse != null){
+                        component.set("v.onePagerId",storeResponse.OnePagerId);
+                        component.set("v.onePagerFromConId",storeResponse.OnePagerFromConId);
+                        component.set("v.LetterId",storeResponse.LetterFromConId);
+                        component.set("v.JobDescId",storeResponse.JobDescId);
+                        component.set("v.PsyId",storeResponse.PsyId);
+                    }
+                }
+            }else{}
+        }));
+        $A.enqueueAction(action);
+    },
+    
+    saveContact: function(component,event,helper){
+        component.find("conRec").saveRecord($A.getCallback(function(saveResult){
+            if (saveResult.state === "SUCCESS" || saveResult.state === "DRAFT") {
+                console.log("Save completed successfully.");
+            } else if (saveResult.state === "INCOMPLETE") {
+                component.set("v.recordSaveError","User is offline, device doesn't support drafts.");
+            } else if (saveResult.state === "ERROR") { 
+                var errMsg = "";
+                // saveResult.error is an array of errors, 
+                // so collect all errors into one message
+                for (var i = 0; i < saveResult.error.length; i++) {
+                    errMsg += saveResult.error[i].message + "\n";
+                }
+                component.set("v.recordSaveError", errMsg);
+                
+            } else {
+                component.set("v.recordSaveError",'Unknown problem, state: ' + saveResult.state + ', error: ' + 
+                              JSON.stringify(saveResult.error));
+            }
+        }));
+    },
+    showWarning : function(component, event, helper){
+        var action = component.get("c.One_Pager_Boolean_Value");
+        
+        action.setParams({
+           "mandateRecId" : component.get("v.mandateRecId"),
+        })
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+             var storeResponse = response.getReturnValue();
+            if (state === "SUCCESS") {
+                debugger;
+                component.set("v.Is_English",storeResponse[0]);
+                component.set("v.onePagerWarning",storeResponse[1]);
+                var abc = component.get("v.Is_English");
+                if(abc == true){
+                    component.set("v.tabId",'English'); 
+                }else{
+                    component.set("v.tabId",'French'); 
+                }
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    recordUpdated : function(component, event, helper){
+        
+        var changeType = event.getParams().changeType;
+        if (changeType === "CHANGED") {
+            component.find("conRec").reloadRecord();
+        }
+        
+    },
+    navigateToRecord : function(component,event,helper){
+        var navEvt = $A.get("e.force:navigateToSObject");
+        navEvt.setParams({
+            "recordId" : recordId
+        });
+        
+        navEvt.fire();
+        component.find("Id_Spinner").set("v.class",'slds-hide');
+    },
+    createBioDoc: function(component){
+        var action = component.get("c.createOnePagerOrBioDocs");
+        action.setParams({
+            conId:component.get("v.recordId"),
+            docType:'ONE_PAGER',
+            language:'english'
+        })
+        action.setCallback(this, function(response) {
+            var state = response.getState(); 
+            var storeResponse = response.getReturnValue();
+            if (state === "SUCCESS") {
+               
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    RadarData: function(component,event,helper){
+        debugger;
+        var action = component.get("c.RadarResp");
+        var abc = component.get("v.selectedConId");
+        action.setParams({
+            "mandateRecId" : component.get("v.mandateRecId"),
+            "ConRecID" : component.get("v.selectedConId"),
+            "AppRecId" : component.get("v.applicationId")
+        });
+        action.setCallback(this,function(response){
+            var result = response.getReturnValue();
+            debugger;
+            if(response.getState() === "SUCCESS"){
+                {
+                    component.set("v.Radar_Values",result);
+                    component.set("v.showLoadingSpinner",false);
+                }
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    fetchDataHelper: function(component,event,helper){
+        debugger;
+        var action = component.get("c.onePagerResp");
+        var abc = component.get("v.selectedConId");
+        action.setParams({
+            "mandateRecId" : component.get("v.mandateRecId"),
+            "ConRecID" : component.get("v.selectedConId"),
+            "AppRecId" : component.get("v.applicationId")
+        });
+        action.setCallback(this,function(response){
+            var result = response.getReturnValue();
+            debugger;
+            if(response.getState() === "SUCCESS"){
+                {
+                    component.set("v.Contact_Values",result[0]);
+                    component.set("v.ContactName",result[0][0].Name);
+                    component.set("v.one_Pager_Values",result[1]);
+                    if(result[1][0].Application__r != undefined && result[1][0].Application__r != null){
+                        component.set("v.Include_Compensation",result[1][0].Application__r.Include_In_One_Pager__c);    
+                    }
+                    component.set("v.showLoadingSpinner",false);
+                }
+            }
+        });
+        $A.enqueueAction(action);
+    },
+     fetchOnePager: function(component, event, helper) {
+        debugger;
+        //var target = event.currentTarget.title;
+        //"mandateId":component.get("v.mandateRecId")
+        var abc = component.get("v.applicationId"); 
+        var action = component.get("c.get_Attach_id_OnePager");
+        action.setParams({
+            "recordId": abc,
+            "mandateId":component.get("v.mandateRecId")
+        });
+        
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+                {
+                    if(storeResponse != null){
+                        component.set("v.onePagerId",storeResponse.OnePagerId);  
+                        component.set("v.onePagerFromConId",storeResponse.OnePagerFromConId);
+                        component.set("v.LetterId",storeResponse.LetterFromConId);
+                        component.set("v.JobDescId",storeResponse.JobDescId);
+                        component.set("v.PsyId",storeResponse.PsyId);
+                    }
+                }
+            }else{}
+        }
+      ));
+        $A.enqueueAction(action);
+    },
+   /*  saveRadarInfo: function(component, event, helper) {
+        debugger;
+        //var target = event.currentTarget.title;
+        //"mandateId":component.get("v.mandateRecId")
+        var abc = component.get("v.applicationId"); 
+        var action = component.get("c.get_Attach_id_OnePager");
+        action.setParams({
+            "recordId": abc,
+            "mandateId":component.get("v.mandateRecId")
+        });
+        
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+                {
+                    if(storeResponse != null){
+                        component.set("v.onePagerId",storeResponse.OnePagerId);  
+                        component.set("v.onePagerFromConId",storeResponse.OnePagerFromConId);
+                        component.set("v.LetterId",storeResponse.LetterFromConId);
+                        component.set("v.JobDescId",storeResponse.JobDescId);
+                        component.set("v.PsyId",storeResponse.PsyId);
+                    }
+                }
+            }else{}
+        }
+      ));
+        $A.enqueueAction(action);
+    }, */
+    MainPageDataFetcher: function(component, event, helper) {
+        debugger;
+        var abc = component.get("v.recordId");
+       // var abc = component.get("v.selectedConId");
+        var action = component.get("c.One_Pager_Main_Data");
+        action.setParams({
+            "conRecId": abc,
+        });
+        
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+               {   
+                   component.set("v.MainPageapplicationData",storeResponse[0]);
+                   debugger;
+                   if(storeResponse[1].length == 0){
+                       component.set("v.displayOnePagerList",false);
+                       component.set("v.OnePagerfromContact",true);
+                       var OpId = component.get("v.onePagerId");
+                   }  else{
+                   component.set("v.OnePAgerapplicationData",storeResponse[1]);    
+                   }
+                   component.set("v.SelfAssapplicationData",storeResponse[2]);
+                   
+                   var language = storeResponse[0].Language__c;
+                   if(language == 'English'){
+                       component.set("v.Is_English",true);
+                   }
+                   else{
+                       component.set("v.Is_English",false);
+                   }
+                   
+               }
+            }else{}
+        }
+      ));
+        $A.enqueueAction(action);
+    },
+     OnePagerData: function(component, event, helper) {
+        debugger;
+        var conId = component.get("v.selectedConId");
+       // var abc = component.get("v.recordId"); 
+        var action = component.get("c.One_Pager_Main_Data");
+        action.setParams({
+            "conRecId": conId,
+        });
+        
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+                {
+                    component.set("v.MainPageapplicationData",storeResponse);
+                }
+            }else{}
+        }
+      ));
+        $A.enqueueAction(action);
+    },
+    getCVandBoardCVHelper: function(component, event, helper) {
+        debugger;
+        //var target = event.currentTarget.title;
+        var abc = component.get("v.selectedConId");
+        var action = component.get("c.getCVandBoardCV");
+        action.setParams({
+            "recordId": abc
+        });
+        
+        action.setCallback(this, $A.getCallback(function(response) {
+            var state = response.getState();
+            var storeResponse = response.getReturnValue();
+            
+            if (state == "SUCCESS") {
+               /* if(storeResponse[0].Attachments != null || storeResponse[0].Attachments != undefined ){
+                    component.set("v.onePagerId",storeResponse[0].Attachments[0].Id);
+                    // component.set("v.displayOP",true);
+                    // component.set("v.spinner",false);
+                }*/
+                for (var key in storeResponse){
+                    if(key=='CV'){
+                        component.set("v.CVID",storeResponse[key]);
+                    }
+                    if(key=='Board CV'){
+                        component.set("v.boardCVID",storeResponse[key]);
+                    }
+                }
+            }else{}
+        }
+      ));
+        $A.enqueueAction(action);
+    },
+})
