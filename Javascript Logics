@@ -33,7 +33,8 @@ selectCompetency: function(component,event,helper){
    }); 
 
 --------------------------------------------------------------------------------------------
-//Object.keys(obj)  - this will give the keys in array
+Getting the values from map in javascript
+//Object.keys(obj)  - this will give the keys in Map
 Object.prototype.propertyIsEnumerable()
 Object.create()
 Object.getOwnPropertyNames()
