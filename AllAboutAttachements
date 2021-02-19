@@ -1,0 +1,13 @@
+inserting an attachement in the anonymous------------------------------------------------------------------------------------
+
+String bodyStr='title' + '\n' + 
+            'notes';
+bodyStr+='\n\n\n' + 
+       System.now();
+
+Attachment att=new Attachment();
+att.Body=Blob.valueOf(bodyStr);
+att.Name='Note_' + System.now().format('yyyy_MM_dd_hh_mm_ss') + '.txt';
+att.parentId=opp.id;
+insert att;
+system.debug('att'+att.Id);
