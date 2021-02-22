@@ -1,1 +1,89 @@
 
+public class FormulaFieldCreationHelper {
+    public string selectedSObject { get; set;}
+    @AuraEnabled
+    public static String createFormula(String Name,String Formula){
+        Formula_Creation__c fc= new Formula_Creation__c();
+        fc.Formulas__c = Formula;
+        fc.Name = name;
+        insert fc;
+        return 'Succes';
+    }
+    
+    @AuraEnabled
+    public static Map<String,String> getObjects(){
+        list<string> options = new list<String>();
+        Map<String,String> ObjectMap = new Map<String,String>(); 
+        map<string, SObjectType> objs = schema.getGlobalDescribe();
+        for(string key: objs.keySet()){
+            ObjectMap.put(objs.get(key).getDescribe().getLabel(),objs.get(key).getDescribe().getName());
+        }
+        system.debug('ObjectMap'+ObjectMap);
+        return ObjectMap;
+    }
+    @AuraEnabled
+    public Static Map<String,String> getFieldList(String ObjName){
+        
+        list<string> fieldList = new list<String>();
+        Map<String,String> FieldMap = new Map<String,String>(); 
+        map<string,SObjectField> fList = schema.getGlobalDescribe().get(ObjName).getDescribe().fields.getMap();
+        for(string str: fList.keySet()){
+            FieldMap.put(fList.get(str).getDescribe().getLabel(),fList.get(str).getDescribe().getName());                
+        }
+        system.debug('fieldList'+FieldMap);
+        return FieldMap;
+    }
+    @AuraEnabled
+    public static Map<String,String> getParentValues(String objectType){
+        system.debug('Parent objectType ====>'+objectType);
+        List<object> allParentField = new List<object>();
+        Map<String, Schema.SObjectType> schemaMap = Schema.getGlobalDescribe();
+        Map<String,String> MapForParent = new Map<String,String>();
+        
+        for(Schema.SobjectField iterator: schemaMap.get(objectType).getDescribe().fields.getMap().Values()) {
+            if(String.valueOf(iterator.getDescribe().getType()) == 'Reference') {
+                MapForParent.put(String.valueOf(iterator.getDescribe().getReferenceTo()),String.valueOf(iterator.getDescribe().getRelationshipName()));
+                system.debug('Parent Objects ====> '+String.valueOf(iterator.getDescribe().getRelationshipName()));
+            }
+        }
+        system.debug('Parent Objects ====>'+MapForParent);
+        return MapForParent;
+    }
+    @AuraEnabled
+    public static List<String> getPicklistValues(String objectType, String selectedField){
+        List<String> pickListValuesList = new List<String>();
+        Schema.SObjectType convertToObj = Schema.getGlobalDescribe().get(objectType);
+        Schema.DescribeSObjectResult res = convertToObj.getDescribe();
+        Schema.DescribeFieldResult fieldResult = res.fields.getMap().get(selectedField).getDescribe();
+        List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+        for( Schema.PicklistEntry pickListVal : ple){
+            pickListValuesList.add(pickListVal.getLabel());
+        }     
+        return pickListValuesList;
+    }
+    
+    @AuraEnabled
+    public static List<String> getChildValues(String objectType){
+        SObjectType objToken = Schema.getGlobalDescribe().get(objectType);
+        DescribeSObjectResult objDef = objToken.getDescribe();
+        List<String> ParentAndChildField = new List<String>(); 
+        Map<String, SObjectField> fieldsObj = objDef.fields.getMap();
+        Set<String> fieldSet = fieldsObj.keySet();
+        DescribeFieldResult selectedField;
+        for(String field : fieldSet){
+            SObjectField fieldToken = fieldsObj.get(field);
+            selectedField = fieldToken.getDescribe();
+            if(selectedField.getType() == Schema.DisplayType.REFERENCE){
+                system.debug('field :: '+field);
+            }
+        }
+        for(Schema.ChildRelationship cr : Contact.SObjectType.getDescribe().getChildRelationships()){
+            ParentAndChildField.add(cr.getRelationshipName());
+            
+            System.debug(cr.getChildSObject() + '.' + cr.getField() + ' reversed is: ' + cr.getRelationshipName());
+        } 
+        return ParentAndChildField;
+    }
+    
+    
+}
