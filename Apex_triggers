@@ -16,3 +16,16 @@ for checking if old values are not same as new one..
               }		
           }
 }
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Adding the Code here to check duplicates inside the list..
+List<String> contactsId = new List<String>();
+set<String> setIds = new set<String>();
+set<String> duplicateIds = new set<String>();
+for(Application__c app : appList){
+  contactsId.add(app.Contact__c);
+}
+for(String ids:contactsId){
+  if(!setIds.add(ids)){
+      duplicateIds.add(ids);
+  }
+}
