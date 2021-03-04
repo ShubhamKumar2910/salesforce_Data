@@ -1,1 +1,13 @@
+scheduling a batch class :
+
+global void execute(SchedulableContext sc) {
+batchForDiscoveryDate b = new batchForDiscoveryDate();
+database.executebatch(b);
+}
+
+---------------------------------------------------------------------
+aborting a scheduled batched class::
+
+List<CronTrigger> jobsToAbort = [select Id from CronTrigger where CronJobDetail.JobType = '7'];
+for (CronTrigger job : jobsToAbort) { System.abortJob(job.Id); }
 
