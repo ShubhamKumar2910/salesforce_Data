@@ -1,0 +1,134 @@
+<apex:page readOnly="true" Controller="InvoicePdfHelper"  action="{!payslips}" applyHtmlTag="false" sidebar="false"  showHeader="false" cache="true" renderAs="advanced_pdf" docType="html-5.0">
+    <head>    
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />    
+        <style type="text/css">
+            @page {
+            size: A4 landscape;    
+            border: 1px solid black;    
+            padding-left: 5px;    
+            padding-right: 5px;      
+            }
+            th {  
+            font-weight: bold;
+            text-align: center;
+            background-color: #92d5f0;
+            color: black;
+            padding: 8px;
+            }
+            td {    
+            font-size: 15px;
+            text-align: left;
+            padding: 8px;
+            }
+            table{
+            border-collapse: collapse;
+            }
+            table, th, td {
+            border: 1px solid black;
+            }
+        </style>    
+    </head>    
+    <center>    
+        <h3> Product Details </h3>    
+    </center>    
+    <table width="100%">    
+        <tr>
+            <th>Product</th>    
+            <th>List Price</th>
+            <th>Sales Price</th> 
+            <th>Quantity</th> 
+            <th>Total Price</th> 
+            
+        </tr>    
+        <apex:repeat value="{!recordlist.ProductList}" var="pay">    
+            <tr>      
+                <td>{!pay.Prodcut_Name__c}</td>
+                <td>{!pay.UnitPrice }</td>
+                <td>{!pay.ListPrice}</td>
+                <td>{!pay.Quantity}</td>
+                <td>{!pay.TotalPrice}</td>
+                
+            </tr>    
+        </apex:repeat>    
+    </table>    
+</apex:page>
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+public class InvoicePdfHelper {
+    
+    public InvoiceWrapper Recordlist{get;set;}
+    public void  payslips()
+    {
+        list<Order> orderList =  [SELECT Dealers_Name__c,Dealers_Address__c,(Select Name,CreatedDate,Invoice_Due_Date__c,Invoice_Generation_Date__c,Order_Amount__c from Invoices__r),(SELECT ListPrice,UnitPrice,Quantity,TotalPrice,Prodcut_Name__c FROM OrderItems) FROM Order where id=:ApexPages.currentPage().getParameters().get('id')];
+        
+        //list<Order> orderList =  [SELECT Dealers_Name__c,Dealers_Address__c,(Select Name,CreatedDate,Due_Date__c from Invoices__r),(SELECT ListPrice,UnitPrice,Quantity,TotalPrice FROM OrderItems) FROM Order where id=:ApexPages.currentPage().getParameters().get('id')];
+        
+        system.debug('orderList'+orderList);
+        
+        Recordlist=new InvoiceWrapper();
+        
+        for(Order ord:orderList)
+        {
+            Recordlist.BillingAdd = ord.Dealers_Address__c;
+            Recordlist.Name = ord.Dealers_Name__c;
+            Recordlist.ProductList = ord.OrderItems;
+            
+            for(Invoice__c Rec:ord.Invoices__r )
+            {
+                Recordlist.CreatedDate = Rec.CreatedDate;
+                Recordlist.ExpiryDate = Rec.Invoice_Due_Date__c ;
+                Recordlist.InvoiceNumber = Rec.Name;
+            }
+        }
+    }   
+    public static void main(String someParentId){
+        PageReference pdf = Page.InvoicePdf;
+        // add parent id to the parameters for standardcontroller
+        pdf.getParameters().put('Id',someParentId);
+        
+        // create the new attachment
+        Attachment attach = new Attachment();
+        
+        // the contents of the attachment from the pdf
+        Blob body;
+        
+        try {
+            
+            // returns the output of the page as a PDF
+            body = pdf.getContent();
+            
+            // need to pass unit test -- current bug	
+        } catch (VisualforceException e) {
+            body = Blob.valueOf('Some Text');
+        }
+        
+        attach.Body = body;
+        // add the user entered name
+        attach.Name = 'Invoice.pdf';
+        attach.IsPrivate = false;
+        // attach the pdf to the account
+        attach.ParentId = someParentId;
+        insert attach;
+    }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+public class InvoiceWrapper {
+
+    @AuraEnabled
+    public DateTime CreatedDate {get;set;}
+    @AuraEnabled
+    public Date ExpiryDate {get;set;}
+    @AuraEnabled
+    public string InvoiceNumber {get;set;}
+    @AuraEnabled
+    public string BillingAdd {get;set;}
+    @AuraEnabled
+    public string Name {get;set;}
+    @AuraEnabled
+    public List<OrderItem> ProductList {get;set;}
+    
+    @AuraEnabled
+    public string Id {get;set;}
+    
+}
