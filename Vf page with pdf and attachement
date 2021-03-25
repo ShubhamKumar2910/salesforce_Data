@@ -60,19 +60,13 @@ public class InvoicePdfHelper {
     public void  payslips()
     {
         list<Order> orderList =  [SELECT Dealers_Name__c,Dealers_Address__c,(Select Name,CreatedDate,Invoice_Due_Date__c,Invoice_Generation_Date__c,Order_Amount__c from Invoices__r),(SELECT ListPrice,UnitPrice,Quantity,TotalPrice,Prodcut_Name__c FROM OrderItems) FROM Order where id=:ApexPages.currentPage().getParameters().get('id')];
-        
-        //list<Order> orderList =  [SELECT Dealers_Name__c,Dealers_Address__c,(Select Name,CreatedDate,Due_Date__c from Invoices__r),(SELECT ListPrice,UnitPrice,Quantity,TotalPrice FROM OrderItems) FROM Order where id=:ApexPages.currentPage().getParameters().get('id')];
-        
         system.debug('orderList'+orderList);
-        
         Recordlist=new InvoiceWrapper();
-        
         for(Order ord:orderList)
         {
             Recordlist.BillingAdd = ord.Dealers_Address__c;
             Recordlist.Name = ord.Dealers_Name__c;
             Recordlist.ProductList = ord.OrderItems;
-            
             for(Invoice__c Rec:ord.Invoices__r )
             {
                 Recordlist.CreatedDate = Rec.CreatedDate;
@@ -81,34 +75,58 @@ public class InvoicePdfHelper {
             }
         }
     }   
+    @AuraEnabled
     public static void main(String someParentId){
         PageReference pdf = Page.InvoicePdf;
         // add parent id to the parameters for standardcontroller
         pdf.getParameters().put('Id',someParentId);
-        
         // create the new attachment
         Attachment attach = new Attachment();
-        
         // the contents of the attachment from the pdf
         Blob body;
-        
         try {
-            
-            // returns the output of the page as a PDF
             body = pdf.getContent();
-            
-            // need to pass unit test -- current bug	
         } catch (VisualforceException e) {
             body = Blob.valueOf('Some Text');
         }
-        
         attach.Body = body;
-        // add the user entered name
         attach.Name = 'Invoice.pdf';
         attach.IsPrivate = false;
-        // attach the pdf to the account
         attach.ParentId = someParentId;
         insert attach;
+        
+        Order ord = [Select id,Email__c from order where id =:someParentId];
+        
+        List<Attachment> Attlist = new List<Attachment>();
+        List<Id> AttIds = new List<Id>(); 
+        Attlist = [select id from Attachment where ParentId =:someParentId ORDER BY CreatedDate DESC NULLS LAST limit 1] ;
+        for(Attachment att:Attlist){
+            AttIds.add(att.id);
+        }
+        InvoicePdfHelper.AddingAttachementsToEmail(ord.Email__c, 'SUbject', 'Body', AttIds);
+    }
+    Public Static void AddingAttachementsToEmail(String MailId,String SUbject,String Body,List<ID> attachmentIds){
+        system.debug('attachmentIds'+attachmentIds);
+        Messaging.SingleEmailMessage message = new Messaging.SingleEmailMessage();
+        message.setToAddresses(new String[] {MailId });
+        List<Attachment> files = [SELECT Name, Body, ContentType FROM Attachment WHERE Id IN :attachmentIds];
+        List<Messaging.EmailFileAttachment> attachments = new List<Messaging.EmailFileAttachment>();
+        for (Attachment file: files) {
+            Messaging.EmailFileAttachment efa = new Messaging.EmailFileAttachment();
+            if(file.Name.contains('.pdf')){
+                efa.setFileName(file.Name);   
+            }
+            else{
+                efa.setFileName(file.Name+'.pdf');
+            }
+            efa.setBody(file.Body);
+            efa.setContentType(file.ContentType);
+            attachments.add(efa);
+        }
+        message.setFileAttachments(attachments);
+        message.setSubject(SUbject);
+        message.setHtmlBody(Body);
+        Messaging.sendEmail(new Messaging.SingleEmailMessage[] {message });
     }
 }
 
