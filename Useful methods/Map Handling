@@ -1,0 +1,8 @@
+      to get the number of records corresponding one instance
+for(Mandate__c manRec:[SELECT Id,Company__c FROM Mandate__c WHERE Company__c In:accIdList] ){
+            if(NumberOfAssOnCompany.containsKey(manRec.Company__c)){
+                NumberOfAssOnCompany.put(manRec.Company__c,NumberOfAssOnCompany.get(manRec.Company__c)+1);
+            }else{
+                NumberOfAssOnCompany.put(manRec.Company__c,1);
+            }
+        }
