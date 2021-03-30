@@ -6,3 +6,11 @@ for(Mandate__c manRec:[SELECT Id,Company__c FROM Mandate__c WHERE Company__c In:
                 NumberOfAssOnCompany.put(manRec.Company__c,1);
             }
         }
+        
+         
+        for(Account acc : lstofAcc){
+            NumberOfPeeopleOnAss.put(acc.Id,acc.Contacts.size());
+            accIdList.add(acc.Id);
+            returnList.add(acc);
+            allAccountList.put(acc.Id,acc);
+        }
