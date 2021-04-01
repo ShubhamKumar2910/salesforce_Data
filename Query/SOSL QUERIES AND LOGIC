@@ -1,0 +1,23 @@
+
+SOSL_QUERY  =  FIND :searchByState RETURNING Account(Name, Rating, BillingState);
+List<List<SObject>>searchList=search.query(queryString);
+
+FOR QUERYING MULTIPLE PHRASES IN SOSL////
+public PageReference doSearch() {
+
+        String searchTerms = '';
+
+        if(!String.isEmpty(searchByState)){
+            searchTerms + = '("' + searchByState + '")';
+        }
+
+        if(!String.isEmpty(searchByName)){
+            if(!String.isEmpty(searchTerms)){
+                searchTerms += ' OR ';
+            }
+            searchTerms += '("' + searchByName + '")';
+        }
+
+        results = (List<Account>)[FIND :searchTerms RETURNING Account(Name, Rating, BillingState)][0];
+        return null;
+    }
