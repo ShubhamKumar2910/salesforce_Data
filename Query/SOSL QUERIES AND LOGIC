@@ -5,19 +5,25 @@ List<List<SObject>>searchList=search.query(queryString);
 FOR QUERYING MULTIPLE PHRASES IN SOSL////
 public PageReference doSearch() {
 
-        String searchTerms = '';
+Boolean booleanSearch = false;
+List<String> lstString = new    List<String>();
+String searchTerms = '';
 
-        if(!String.isEmpty(searchByState)){
-            searchTerms + = '("' + searchByState + '")';
+if(!String.isEmpty(BooleanSearchValue)){
+    booleanSearch = true; 
+    if(BooleanSearchValue.contains(',')){
+        lstString = BooleanSearchValue.split(',');
+        system.debug('lstString'+lstString);
+        integer i = 0;
+        for(String Str:lstString){
+            i++;
+            searchTerms += '("' + Str + '")'+'OR';
         }
-
-        if(!String.isEmpty(searchByName)){
-            if(!String.isEmpty(searchTerms)){
-                searchTerms += ' OR ';
-            }
-            searchTerms += '("' + searchByName + '")';
-        }
-
-        results = (List<Account>)[FIND :searchTerms RETURNING Account(Name, Rating, BillingState)][0];
-        return null;
+        searchTerms = searchTerms.Substring(0,searchTerms.length()-2);
+    }else{
+        searchTerms = BooleanSearchValue;
     }
+ }
+}
+String queryString = 'FIND {'+searchTerms+'} IN ALL FIELDS RETURNING Contact';
+List<List<SObject>>searchList=search.query(queryString);
