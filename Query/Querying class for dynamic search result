@@ -1,6 +1,11 @@
 public class SearchAssignemntCtrl
 {  
     @AuraEnabled
+    public static List<Contact> GetPeopleRecFromCompany(String CompId){
+        List<Contact> ConList = [SELECT Id,Name,Phone,Email FROM Contact WHERE AccountId =:CompId]; 
+        return ConList;
+    }
+    @AuraEnabled
     public static List<String> getFieldsLabelName(){
         SearchAssignmentColumnList__c searchPeople=SearchAssignmentColumnList__c.getValues('Assignment');
         String FieldLabel=searchPeople.FieldLabelName__c;
@@ -15,6 +20,15 @@ public class SearchAssignemntCtrl
         return fieldsAPIName;
     }
     @AuraEnabled
+    public static String getJobDescID(String mandateId){
+        String JobDescId;
+        Attachment[] JdIdFromMan = [SELECT Id FROM Attachment WHERE ParentId = :mandateId AND Name LIKE '%Job desc%' ORDER BY LastModifiedDate DESC LIMIT 1];
+        if(JdIdFromMan.size() > 0){
+            JobDescId = JdIdFromMan[0].Id;    
+        }
+        return JobDescId;
+    }
+    @AuraEnabled
     public static Map<String,List<String>> getFields(){
         List<String> labelList=SearchAssignemntCtrl.getFieldsLabelName();
         List<String> apiList=SearchAssignemntCtrl.getFieldsAPIName();
@@ -25,7 +39,6 @@ public class SearchAssignemntCtrl
     }
     @AuraEnabled
     public static Map<String,List<String>> UserList(){
-        
         Map<String,List<String>> UserNames = new Map<string,List<String>>();
         List<String> Username= new List<string>();
         List<String> UserID= new List<string>();
@@ -34,17 +47,16 @@ public class SearchAssignemntCtrl
             Username.add(aUser.Name);
             UserID.add(aUser.Id) ;
         }
-        
         UserNames.put('UserName',Username);
         UserNames.put('UserID',UserID);
         return UserNames; 
-        
     }
     
     public static Integer count;
     @AuraEnabled
     public static String[] picklist_values(String object_name, String field_name) 
     {
+        system.debug('field_name'+field_name);
         String[] values = new String[]{};
             String[] types = new String[]{object_name};
                 Schema.DescribeSobjectResult[] results = Schema.describeSObjects(types);
@@ -65,6 +77,17 @@ public class SearchAssignemntCtrl
         
         for(String str:fieldList)
         {
+            if(str == 'Industry_Types__c' ){
+                system.debug('Industry_Types__c');
+                obj = 'Account';
+            }else if(str == 'Country__c' ){
+                obj = 'Contact';
+            }else if(str == 'State__c' ){
+                obj = 'Contact';
+            }
+            else{
+                obj = 'Mandate__c';
+            }
             pickvalByFieldName.put(str,picklist_values(obj,str));
         }
         return pickvalByFieldName;   
@@ -78,25 +101,115 @@ public class SearchAssignemntCtrl
             List<String> fieldvalue = new List<String>();
             
             String fields = '';
+            List<String> countryToAvoid = new List<String>();
+            countryToAvoid.add('Canada');
+            countryToAvoid.add('United State');
+            countryToAvoid.add('Europe');
             
+            Integer k=0;
+            String CountryString = '';
+            if(!countryToAvoid.isEmpty()){
+                for(String  country: countryToAvoid) {
+                    if(k>0)
+                        CountryString += ' , ';
+                    CountryString += '\''+country+'\'';
+                    k++;
+                }
+            }
+            system.debug('CountryString'+CountryString);
+            
+            Boolean stop = false;
+            Boolean value = false;
+            Boolean Mulitple = false;
+            String innerVar = '';
+            system.debug('fetchdata.keySet()'+fetchdata.keySet());
+            system.debug('fetchdata.keySet()'+fetchdata.values());
             for(String str : fetchdata.keySet())
             {
                 if(fetchData.get(str) !=null && !fetchData.get(str).isEmpty())
                 {
                     if(fields.length() == 0)
                     {
-                        fields += ' (';
-                    }else
-                    {
-                        fields += ' AND (';
+                        if(str == 'Country__c'){
+                            fields += '( ';
+                            stop = false;
+                        }
+                        else if(str == 'Partner__c'){
+                            fields += '';
+                            stop = true;
+                        }
+                        else{
+                            fields += ' (';  
+                        }
                     }
-                    
-                    String innerVar;
+                    else
+                    {
+                        system.debug('str'+str);
+                        if(str == 'Country__c'){
+                            fields += ' ';
+                            stop = true;
+                        }
+                        if(str == 'Partner__c'){
+                            system.debug('innerVar'+innerVar);
+                            if(innerVar.length()>1){
+                                fields += ' AND (';
+                                 stop = true;
+                            }else{
+                                fields += ' OR ';
+                                stop = true;    
+                            }
+                        }
+                        else if(str == 'Partner_2__c'){
+                            fields += ' OR ';
+                            stop = true;
+                        }
+                        else if(str == 'Partner_3__c'){
+                            fields += ' OR ';
+                            stop = true;
+                        }
+                        else if(str == 'Consultant__c'){
+                            fields += ' OR ';
+                            stop = true;
+                        }
+                        else if(str == 'Researcher__c'){
+                            value = true;
+                            fields += ' OR ';
+                        }else if(str == 'Researcher_3__c'){
+                            value = true;
+                            fields += ' OR ';
+                        }
+                        else if(str == 'Researcher_4__c'){
+                            value = true;
+                            fields += ' OR ';
+                        }
+                        else if(str == 'Researcher_5__c'){
+                            value = true;
+                            stop = false;
+                            fields += ' OR ';
+                        }
+                        else if(str == 'Assignment_Status__c'){
+                            fields += ' AND (';
+                        }
+                    }
+                   
                     if(str == 'Mandate_Start_Date__c'){
-                        innerVar = str+'>';
+                        if(innerVar.length() > 5){
+                            innerVar = ' AND ('+str+' >';
+                        }else{
+                            innerVar = str+' >';
+                            system.debug('innerVar'+innerVar);    
+                        }
+                        
                     }
                     else if(str == 'Mandate_End_Date__c'){
-                        innerVar = str+'<';
+                        // innerVar = ' AND ('+str+' <';
+                        system.debug('innerVar'+innerVar);
+                        if(innerVar.contains('Mandate_Start_Date__c') ){
+                            system.debug('innerVar is containing Mandate_Start_Date__c');
+                            innerVar = ' AND ('+str+' <';
+                        }else{
+                            innerVar = +str+' <';
+                        } 
                     }
                     else if(str == 'Company_Name_French__c'){
                         innerVar = str+' like ';
@@ -104,55 +217,107 @@ public class SearchAssignemntCtrl
                     else if(str == 'Name'){
                         innerVar = str+' like ';
                     }
+                    else if(str == 'Country__c' && fetchdata.get('Country__c')[0] == 'Other'){
+                        innerVar = str+' NOT IN ';
+                    }
+                    else if(str == 'Partner__c' ||str == 'Partner_2__c'||str == 'Partner_3__c'||str == 'Consultant__c'||str == 'Researcher__c'||str == 'Researcher_3__c'||str == 'Researcher_4__c'||str == 'Researcher_5__c' ){
+                        if(fetchdata.get(str).size() > 1){
+                            String partnerIdString = '';
+                            if(!fetchdata.get(str).isEmpty()){
+                                for(String  partner: fetchdata.get(str)) {
+                                    if(k>0)
+                                        partnerIdString += '\''+partner+'\'';
+                                    partnerIdString += ' , ';
+                                    k++;
+                                }
+                            }
+                            system.debug('We are using In');
+                            partnerIdString = partnerIdString.Substring(0,partnerIdString.length()-2);
+                            system.debug('partnerIdString'+partnerIdString);
+                            fields += str+' IN ('+partnerIdString+')';   
+                            Mulitple = true; 
+                            stop = false;
+                            system.debug('');
+                        }
+                        else{
+                            system.debug(fetchdata.get(str).size());
+                            system.debug(fetchdata.get(str));
+                            innerVar = str+'=';
+                        }
+                    }
+                    //till here
                     else{
                         innerVar = str+'=';
                     }
-                    
                     List<String> fieldValues=fetchdata.get(str);
-                    
-                    for(Integer i=0;i<fieldValues.size();i++)
-                    {
-                        if(i==0)
+                    system.debug('Catch it here'+fetchdata.get(str));
+                    if( Mulitple == false){
+                        for(Integer i=0;i<fieldValues.size();i++)
                         {
-                            if(innerVar.contains('like')){
-                                if(fieldValues[i].contains('-'))
-                                {
-                                    fields += innerVar+'%'+fieldValues[i]+'%'; 
+                            if(i==0)
+                            {
+                                if(innerVar.contains('like')){
+                                    if(fieldValues[i].contains('-'))
+                                    {
+                                        fields += innerVar+'%'+fieldValues[i]+'%'; 
+                                    }
+                                    else
+                                    {
+                                        fields += innerVar+'\'%'+fieldValues[i]+'%'+'\'';    
+                                    }
                                 }
-                                else
-                                {
-                                    fields += innerVar+'\'%'+fieldValues[i]+'%'+'\'';    
+                                else{
+                                    
+                                    if(fieldValues[i].contains('Other'))
+                                    {
+                                        fields += innerVar+'('+CountryString+')'; 
+                                    }
+                                    else if(fieldValues[i].contains('-'))
+                                    {
+                                        fields += innerVar+' '+fieldValues[i]; 
+                                    }
+                                    else
+                                    {
+                                        fields += innerVar+'\''+fieldValues[i]+'\'';    
+                                    }
                                 }
+                            }else
+                            {
+                                system.debug('fieldValues[i]'+fieldValues[i]);
+                                
+                                fields +=' '+'OR '+innerVar+'\''+fieldValues[i]+'\'';
                             }
-                            else{
-                                if(fieldValues[i].contains('-'))
-                                {
-                                    fields += innerVar+' '+fieldValues[i]; 
-                                }
-                                else
-                                {
-                                    fields += innerVar+'\''+fieldValues[i]+'\'';    
-                                }
-                            }
-                            
-                        }else
-                        {
-                            system.debug('fieldValues[i]'+fieldValues[i]);
-                            
-                            fields +=' '+'OR '+innerVar+'\''+fieldValues[i]+'\'';
+                        }
+                        if(stop == false){
+                            system.debug('Stop false');
+                            fields += ' )';    
+                        }
+                        else{
+                            system.debug('Stop true');
+                            fields += ' ';
                         }
                     }
-                    fields += ' )';
+                    else{
+                    }
                 }
                 else
-                {
-                    
+                {   
+                    system.debug('fields'+fields);
                 }
+            }
+
+            if(fields.contains('AND')){
+                if(fields.contains('IN')){
+                    system.debug('containing In');
+                    fields = fields+')';
+                }    
+            }else{
+
             }
             
             System.debug('@@@@'+fields);
-            
-            String queryString = 'SELECT Id, Company__r.Name, Name, Company__r.Industry_Types__c, Status__c, Assignment_Status__c, Mandate_Start_Date__c,Job_Function__c,Partner__r.name,Partner_2__r.name, Level__c,Number_of_candidates__c,number_of_days__c From Mandate__c where'+fields+' Limit 49999' ;
+            String queryString ;
+            queryString  = 'SELECT Id,State__c,Country__c,Company_Name_French__c,Job_description_Id__c,Company__r.Name,Has_Job_Description__c,Industry_Types__c,Name, Company__r.Industry_Types__c, Status__c, Assignment_Status__c, Mandate_Start_Date__c,Job_Function__c,Partner__r.name,Partner_2__r.name,Level__c,Number_of_candidates__c,number_of_days__c From Mandate__c where '+fields+' Limit 49999' ;
             
             System.debug('@@@@'+queryString);
             
@@ -202,5 +367,4 @@ public class SearchAssignemntCtrl
         }
         return res;
     }
-    
 }
