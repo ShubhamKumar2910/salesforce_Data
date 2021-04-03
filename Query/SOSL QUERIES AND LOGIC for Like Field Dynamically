@@ -23,7 +23,32 @@ if(!String.isEmpty(BooleanSearchValue)){
     }else{
         searchTerms = BooleanSearchValue;
     }
- }
+}
 }
 String queryString = 'FIND {'+searchTerms+'} IN ALL FIELDS RETURNING Contact';
 List<List<SObject>>searchList=search.query(queryString);
+---------------------------------------------------------------------------------------------------------------------------------
+
+if(!String.isEmpty(opSearchValue)){
+OnePagerSearch = true; 
+if(opSearchValue.contains(',')){
+    OpString = opSearchValue.split(',');
+    }
+    searchOp = searchTerms.Substring(0,searchTerms.length()-2); */
+}else{
+    OpString.add(opSearchValue);
+}
+}
+
+Boolean first = true;
+String query = 'Select ID,Question_Eng__c,Question_Fr__c,One_Pager__c FROM One_Pager_Response__c';
+for(String vp : OpString){
+    if(!first){
+        query = query + ' OR';
+    } else {
+        query = query + ' WHERE';
+    }
+    query = query + ' Question_Eng__c LIKE \'%' + vp + '%\'';
+    first = false;
+}
+system.debug('Query'+query);
