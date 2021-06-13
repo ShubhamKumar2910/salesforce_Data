@@ -14,3 +14,27 @@ for(Mandate__c manRec:[SELECT Id,Company__c FROM Mandate__c WHERE Company__c In:
             returnList.add(acc);
             allAccountList.put(acc.Id,acc);
         }
+---------------------------------------------------------------------------------------------------------------------
+ 
+ Handling a record with a particular type and different record..
+ 
+ map<id,Student_Assessment_Result__c> studenrtAssessmentResultMap = new map<id,Student_Assessment_Result__c>([SELECT Answer__c,Marks__c,Question__c,Que_Category__c,Student_Test_Association__c FROM Student_Assessment_Result__c]);
+        List<Student_Assessment_Result__c> ListforStudResultByType = new List<Student_Assessment_Result__c>();
+        system.debug('studenrtAssessmentResultMap'+studenrtAssessmentResultMap);
+        Set<String> CategoriesOfQues = new Set<String>();
+        map<String,List<Student_Assessment_Result__c>> StudentAssResbyCategory = new map<String,List<Student_Assessment_Result__c>>();
+        for(Student_Assessment_Result__c sar:studenrtAssessmentResultMap.values()){
+            if(StudentAssResbyCategory.containsKey(sar.Que_Category__c)){
+                List<Student_Assessment_Result__c> newList  = StudentAssResbyCategory.get(sar.Que_Category__c);
+                newList.add(sar);
+                StudentAssResbyCategory.put(sar.Que_Category__c,newList);
+                
+            }else{
+                StudentAssResbyCategory.put(sar.Que_Category__c,new List<Student_Assessment_Result__c>{sar});
+            }
+        }
+        system.debug( StudentAssResbyCategory);
+        for(String str:StudentAssResbyCategory.keyset()){
+            system.debug('The list is'+StudentAssResbyCategory.get(str));
+  }
+  }
