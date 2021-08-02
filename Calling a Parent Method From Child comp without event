@@ -1,0 +1,11 @@
+<aura:method name="parentMethod" action="{!c.doInit}/>
+
+<c:child parent="{! this }"/>
+and in the child component you can then invoke the parent method:
+
+<aura:attribute name="parent" type="Aura.Component" required="true"/>
+
+someMethod: function(component, event, helper) {
+    var p = component.get("v.parent");
+    p.parentMethod();
+}
