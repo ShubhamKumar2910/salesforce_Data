@@ -73,28 +73,39 @@ Url will only take that path where u want to jump after the host name
 
 if you want to create a dynamic map for the data coming form  backend like a list of object for a particular type...
 
-for (let j = 0; j < mapofRef.length; j++) {
-    if(mapofRef[j].key == result[i].Type__c){
-        mapofRef[j].value.push({'Reference_Ques__c':result[i].Reference_Ques__c,'Reference_Fr_Ques__c':result[i].Reference_Ques__c,
-                                'Seq_Number__c':'','Assignment__c':result[i].Assignment__c,'Type__c':result[i].Type__c,'Id':result[i].Id});
-        break;
-    }else{
-        // check if all Keys has been iterarted
-        // If yes then and we could not find the key - then push it
+if( mapofRef.length == undefined || mapofRef.length == 0){
+    var new_Ref = [];
+    new_Ref.push({'Reference_Ques__c':result[i].Reference_Ques__c,'Reference_Fr_Ques__c':result[i].Reference_Fr_Ques__c,
+                  'Seq_Number__c':'','Assignment__c':result[i].Assignment__c,'Type__c':result[i].Type__c,'Id':result[i].Id});     
 
-        if(j == mapofRef.length-1){
-               var new_Ref = [];
-                new_Ref.push({'Reference_Ques__c':result[i].Reference_Ques__c,'Reference_Fr_Ques__c':result[i].Reference_Ques__c,
-                              'Seq_Number__c':'','Assignment__c':result[i].Assignment__c,'Type__c':result[i].Type__c,'Id':result[i].Id});     
-
-                mapofRef.push({
-                    key: result[i].Type__c,
-                    value: new_Ref
-                });  
+    mapofRef.push({
+        key: result[i].Type__c,
+        value: new_Ref
+    });
+}else{
+    for (let j = 0; j < mapofRef.length; j++) {
+        if(mapofRef[j].key == result[i].Type__c){
+            mapofRef[j].value.push({'Reference_Ques__c':result[i].Reference_Ques__c,'Reference_Fr_Ques__c':result[i].Reference_Ques__c,
+                                    'Seq_Number__c':'','Assignment__c':result[i].Assignment__c,'Type__c':result[i].Type__c,'Id':result[i].Id});
             break;
         }else{
-            continue;
-        }
-    }
+            // check if all Keys has been iterarted
+            // If yes then and we could not find the key - then push it
 
+            if(j == mapofRef.length-1){
+                   var new_Ref = [];
+                    new_Ref.push({'Reference_Ques__c':result[i].Reference_Ques__c,'Reference_Fr_Ques__c':result[i].Reference_Ques__c,
+                                  'Seq_Number__c':'','Assignment__c':result[i].Assignment__c,'Type__c':result[i].Type__c,'Id':result[i].Id});     
+
+                    mapofRef.push({
+                        key: result[i].Type__c,
+                        value: new_Ref
+                    });  
+                break;
+            }else{
+                continue;
+            }
+        }
+
+    }
 }
