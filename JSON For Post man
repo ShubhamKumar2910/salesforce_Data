@@ -1,0 +1,88 @@
+Sending the Wrapper To Postman Or some Other in JSON format....
+
+public class FireBaseWrapper {  
+    
+    public class Fields {
+        public Message message;
+        public Read read;
+        public user_id user_id;
+        public user_type user_type;
+    }
+    
+    public Fields fields;
+    public DateTime createTime;
+    
+    public class Message {
+        public String stringValue;
+    }
+    public class ElapsedTime {
+        public String integerValue;
+    }
+    public class read {
+        public boolean booleanValue ;
+    }
+    public class user_id {
+        public String stringValue;
+    }
+    public class user_type {
+        public String stringValue;
+    }
+    
+    public static FireBaseWrapper parse(String json) {
+        return (FireBaseWrapper) System.JSON.deserialize(json, FireBaseWrapper.class);
+    }  
+}
+----------------------------------------------------------------------------------------------------
+
+Using this wrapper in an apex class..
+
+FireBaseWrapper fbw = new FireBaseWrapper(); 
+
+FireBaseWrapper.Message mess= new FireBaseWrapper.Message();
+mess.stringValue = message;
+
+FireBaseWrapper.Read rr = new FireBaseWrapper.Read();
+rr.booleanValue = false ;
+
+FireBaseWrapper.user_id fb= new FireBaseWrapper.user_id();
+fb.stringValue = candidateToBeNotified.Firebase_Id__c;//'0036D00000Oa2LwQAJ';
+
+FireBaseWrapper.user_type ut= new FireBaseWrapper.user_type();
+ut.stringValue = candidateToBeNotified.Registered_By__c;//'Mentor';
+
+FireBaseWrapper.Fields feild= new FireBaseWrapper.Fields();
+feild.message = mess;
+//feild.ElapsedTime = abc;
+feild.read = rr;
+feild.user_id = fb;
+feild.user_type = ut;
+
+system.debug('jsonString'+feild); 
+--------------------------------------------------------------------------------------------------------
+
+Accepting the Wrapper from Postman Or some Other in JSON format....
+Use JSON to apex To decode the Json..Something like this
+
+public class JSON2Apex {
+public String Base64Data ;
+public String ParentId ;
+public String FileName ;
+public String contentType ;
+
+public static JSON2Apex parse(String json) {
+    return (JSON2Apex) System.JSON.deserialize(json, JSON2Apex.class);
+  }
+}
+
+--------------------------------------------------------------------------------------------------------
+Getting the Data in Apex to use fom this wrapper..
+
+JSON2Apex data = (JSON2Apex)JSON.deserialize(jsonString, JSON2Apex.class);
+      String Body = data.Base64Data;
+      Blob b = EncodingUtil.base64Decode(Body);
+      String RecordId = data.ParentId;
+      String FileName = data.FileName;
+      String contentType = data.contentType;
+      //Body = EncodingUtil.urlDecode(Body,'UTF-8');
+      system.debug('Body'+Body+'RecordId'+RecordId+'FileName'+FileName);
+
