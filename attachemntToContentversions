@@ -1,0 +1,24 @@
+list<Attachment> invoices = [select id, name, body from attachment limit 10];
+            list<ContentVersion> contents = new list<ContentVersion>();
+            list<ContentDistribution> dists = new list<ContentDistribution>();
+
+            for(Attachment inv: invoices){
+                ContentVersion cont = new ContentVersion();
+                cont.Title = inv.Name;
+                cont.PathOnClient =  inv.Name;
+                cont.VersionData = inv.Body;
+                contents.add(cont);
+            }
+            insert contents;
+
+            for(ContentVersion cont : contents){
+                ContentDistribution cd = new ContentDistribution();
+                cd.name = cont.Title;
+                cd.ContentVersionId = cont.id;
+                cd.PreferencesAllowOriginalDownload = true;
+                cd.PreferencesAllowPDFDownload = true;
+                cd.PreferencesAllowViewInBrowser = true;
+                dists.add(cd); 
+            }             
+
+            insert dists ;
