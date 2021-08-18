@@ -1,0 +1,38 @@
+Headers:::
+-------------------------------
+Authorization:{{Access Token}}
+Content-Type:text/xml
+SOAPAction:''
+------------------------------
+Getting the SessionId :::
+
+Body Raw :
+
+<?xml version="1.0" encoding="utf-8" ?>
+<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+<env:Body>
+   <n1:login xmlns:n1="urn:enterprise.soap.sforce.com">
+    <n1:username>ajeet.kumar@utilitarianlab.com.healthcare</n1:username>
+    <n1:password>ajeet@20225c8Pk5aqxmfBpIxftjmMc5kdf</n1:password>
+   </n1:login>
+</env:Body>
+</env:Envelope>
+
+------------------------------
+Using the session id for getting the Data from Salesforce ::
+
+<?xml version="1.0" encoding="utf-8" ?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:enterprise.soap.sforce.com" xmlns:urn1="urn:sobject.enterprise.soap.sforce.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <soapenv:Header>
+    <urn:SessionHeader>
+      <urn:sessionId>00D0p0000008ihu!ARkAQE2gAni8q3aF.xUjna6GgRv9niXq5TEov4oq7tj9JEdi2N22ccqKRHM27TzJzRSGGQd4PLdymDTHt3_o_Djbc1unT6oN</urn:sessionId>
+    </urn:SessionHeader>
+  </soapenv:Header>
+  <soapenv:Body>
+    <urn:query>
+      <urn:queryString>SELECT VersionData,CreatedDate FROM ContentVersion WHERE ContentDocumentId = '0690p000000CpimAAC'</urn:queryString>
+    </urn:query>
+  </soapenv:Body>
+</soapenv:Envelope>
