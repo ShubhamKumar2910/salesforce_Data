@@ -33,3 +33,50 @@ public class ZoomIntegration {
         
     } 
 }
+
+------------------------------------------------------------------------------------------------------
+
+Creating meeting using JWT
+
+Public class ZoomApis {
+ /*  
+ZoomApis.createMeetingWapper newWapper = new ZoomApis.createMeetingWapper();
+newWapper.topic = 'Test Topic';
+newWapper.type = 2;
+newWapper.start_time = '2021-04-21T16:54:14Z';
+newWapper.duration = 60;
+newWapper.timezone = 'Asia/Kolkata';
+string jsonString = JSON.serialize(newWapper);
+System.debug('jsonString >>'+jsonString);
+ ZoomApis.createMeeting('kshubham.skr29@gmail.com',jsonString);
+ */
+    public static void createMeeting(String userEmail,String jasonString) {
+        System.debug('jason>>'+jasonString);
+        //https://api.zoom.us/v2/users/{userId}
+        String endPoint = 'https://api.zoom.us/v2/users/Kshubham.skr29@gmail.com/meetings';
+        HttpRequest req = new HttpRequest();
+        req.setBody(jasonString);
+        req.setMethod('POST');
+        req.setHeader('Content-type', 'application/json');
+        req.setHeader('Authorization', 'bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOm51bGwsImlzcyI6IkRRZ3NIOFJtUzZlWm9WVDdlU1RVVmciLCJleHAiOjE2Mjk1NTkxMDEsImlhdCI6MTYyOTU1MzcxOX0.eFdi7uWfOMERtznnDvRN-O7WAroMN63kCX0qpPKpHeA');
+        req.setEndpoint(endPoint); 
+        Http http = new Http();
+        HttpResponse res = http.send(req);
+         
+        if(res.getStatusCode() == 201){
+            System.debug('res pass >>>' +res.getBody());            
+        }else{
+            System.debug('res fail >>>' +res.getBody());
+        }
+    }
+     
+    public class createMeetingWapper{
+        Public String topic {get;set;}
+        Public Integer type {get;set;}
+        Public String start_time {get;set;}
+        Public Integer duration {get;set;}
+        Public String timezone {get;set;}
+        Public String password {get;set;}
+    }
+}
+
