@@ -1,0 +1,26 @@
+public class AppointmentTimeClass {
+    
+    public AppointmentTimeClass(){
+        //slotName.put('30MIN',);
+        Integer startTimeHour =10;
+        Integer endTimeHour =16;
+        String slotDuration='30';//'45'/'60'
+        Time startTime = Time.newInstance(startTimeHour,0,0,0);
+        
+        Time endTime = Time.newInstance(endTimeHour,0,0,0);
+        
+        Time nextStartTime = startTime;
+        
+       	Integer totalSlot = (endTimeHour - startTimeHour)*60 /Integer.valueOf(slotDuration);
+        
+        Map<Time,Time> allSlots = new Map<Time,Time>(); 
+        
+        for(Integer i=0;i<totalSlot;i++){
+            allSlots.put(nextStartTime,nextStartTime.addMinutes(Integer.valueOf(slotDuration)));
+            nextStartTime = nextStartTime.addMinutes(Integer.valueOf(slotDuration));
+        }
+        System.debug('allSlots'+allSlots);
+    }
+    
+
+}
