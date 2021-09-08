@@ -1,26 +1,39 @@
-public class AppointmentTimeClass {
-    
-    public AppointmentTimeClass(){
-        //slotName.put('30MIN',);
-        Integer startTimeHour =10;
-        Integer endTimeHour =16;
-        String slotDuration='30';//'45'/'60'
-        Time startTime = Time.newInstance(startTimeHour,0,0,0);
-        
-        Time endTime = Time.newInstance(endTimeHour,0,0,0);
-        
-        Time nextStartTime = startTime;
-        
-       	Integer totalSlot = (endTimeHour - startTimeHour)*60 /Integer.valueOf(slotDuration);
-        
-        Map<Time,Time> allSlots = new Map<Time,Time>(); 
-        
-        for(Integer i=0;i<totalSlot;i++){
-            allSlots.put(nextStartTime,nextStartTime.addMinutes(Integer.valueOf(slotDuration)));
-            nextStartTime = nextStartTime.addMinutes(Integer.valueOf(slotDuration));
-        }
-        System.debug('allSlots'+allSlots);
+List <Doctor_Calender__c> docCal = [SELECT Active__c,Appointment_Duration__c,Days__c,Doctor__c,End_Time__c,Schedule_Period__c,Start_Time__c FROM Doctor_Calender__c where Doctor__c = :drId And Active__c = true LIMIT 1];
+    Integer numberOfSlots = docCal[0].End_Time__c.hour() - docCal[0].Start_Time__c.hour();
+    integer slotDuration = 0;
+    if(docCal[0].Appointment_Duration__c == '30 min')
+    {
+        numberOfSlots = numberOfSlots*2;
+        slotDuration = 30;
+    }else if(docCal[0].Appointment_Duration__c == '15 min'){
+        numberOfSlots = numberOfSlots*4;
+        slotDuration = 15;
+    }else{
+        numberOfSlots = integer.valueof(numberOfSlots/0.75);
+        slotDuration = 45;
     }
-    
+    system.debug('numberOfSlots'+numberOfSlots);
 
+    Time nextStartTime =  docCal[0].Start_Time__c;
+
+    List<String> TimingSlots = new List<String>();
+
+    for(Integer i=0;i<numberOfSlots;i++){
+        String strtTime = string.valueOf(nextStartTime).substring(0,5);
+        if(integer.valueOf(strtTime.substring(0,2)) < 12){
+            strtTime = strtTime+'AM';
+        }else{
+            strtTime = strtTime+'PM';
+        }
+        String endTime = string.valueOf(nextStartTime.addMinutes(Integer.valueOf(slotDuration))).substring(0,5);
+        if(integer.valueOf(endTime.substring(0,2)) < 12){
+            endTime = endTime+'AM';
+        }else{
+            endTime = endTime+'PM';
+        }
+        TimingSlots.add(strtTime+'-'+endTime);
+        //allSlots.put(nextStartTime,nextStartTime.addMinutes(Integer.valueOf(slotDuration)));
+        nextStartTime = nextStartTime.addMinutes(Integer.valueOf(slotDuration));
+    }
+    System.debug('TimingSlots'+TimingSlots);
 }
