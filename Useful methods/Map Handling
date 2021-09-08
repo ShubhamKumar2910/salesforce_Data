@@ -38,3 +38,19 @@ for(Mandate__c manRec:[SELECT Id,Company__c FROM Mandate__c WHERE Company__c In:
             system.debug('The list is'+StudentAssResbyCategory.get(str));
   }
   }
+  ------------------------------------------------------------------------------------------------------------------------------
+Comparing two arrays in an map for arrays :
+
+List<Account> firstList;
+List<Account> secondList;
+
+Map<id, Account> firstMap = new Map<id, Account>(firstList);
+Map<id, Account> secondMap = new Map<id, Account>(secondList);
+
+If( firstMap.keySet().contailsAll(secondMap.keySet()) && secondMap.keySet().contailsAll(firstMap.keySet())  ){
+ System.debug('List are equals');
+}
+else{
+System.debug('List are not equals');
+
+}
