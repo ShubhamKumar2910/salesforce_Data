@@ -1,0 +1,12 @@
+  Typecasting to List when the wrapper is for a singl doc::
+  wrappers = (List<JsonParser>)(JSON.deserialize(response.getBody(), List<JsonParser>.class));
+  
+  ----------------------------------------------------------------------------------------------
+  
+  Getting the Response to a partivular wrapper ::
+
+  RazorPayResponseWrapper respWrapObj = RazorPayResponseWrapper.parse(res.getBody());
+  
+  ----------------------------------------------------------------------------------------------
+  
+  
