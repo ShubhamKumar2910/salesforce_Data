@@ -158,3 +158,411 @@
         
     </html>
 </apex:page>
+
+-------------------------------------------------------------------------------------------
+
+global class DocCategoryHelper {
+    
+    public String blobData {
+        get {
+            try{
+                return EncodingUtil.Base64Encode(docWrapperInstance.blobFile);
+            }catch(Exception e){
+                return '';
+            }
+            
+        }
+    }
+    public docWrapper docWrapperInstance{get;set;}
+    public DocCategoryHelper() {
+        viewPDF();
+    }
+    
+    @RemoteAction
+    global static List<DocumentTreeWrapper> getDocuments(String applicationId) {
+        if(String.isBlank(applicationId))
+            return null;
+        Map<Id,DocumentTreeWrapper> uiWrapper = new Map<Id,DocumentTreeWrapper>();
+        List<Proposal_Doc_category__c> propList=  [Select id,Proposal__c from Proposal_Doc_category__c where Proposal__c =:applicationId];
+        List<Application_Document_Category__c> propAppList=  [Select id,Proposal_Application__c from Application_Document_Category__c where Proposal_Application__c =:applicationId];
+        String Obj = '';
+        if(propList.size() > 0){
+            for(Proposal_Doc_category__c appDoc : [SELECT Id, Name,Type__c,(SELECT Id, Name FROM Documents_Attachments__r) FROM Proposal_Doc_category__c WHERE Proposal__c =:applicationId ORDER BY CreatedDate]) {
+                //Handle First level cat Here
+                DocumentTreeWrapper appDocWrapper;
+                
+                appDocWrapper = new DocumentTreeWrapper(appDoc.Id, appDoc.Type__c); 
+                if(!appDoc.Documents_Attachments__r.isEmpty()){
+                    for(Documents_Attachment__c appAttachment : appDoc.Documents_Attachments__r) {
+                        appDocWrapper.childNodes.add(new DocumentTreeWrapper(appAttachment.Id, appAttachment.Name));
+                    }
+                }
+                
+                uiWrapper.put(appDoc.Id, appDocWrapper);
+            }
+        }
+        if(propAppList.size() > 0){
+            for(Application_Document_Category__c appDoc : [SELECT Id, Name,Doc_Type__c,(SELECT Id, Name FROM Documents_Attachments__r) FROM Application_Document_Category__c WHERE Proposal_Application__c =:applicationId ORDER BY CreatedDate]) {
+                //Handle First level cat Here
+                DocumentTreeWrapper appDocWrapper;
+                
+                appDocWrapper = new DocumentTreeWrapper(appDoc.Id, appDoc.Doc_Type__c); 
+                if(!appDoc.Documents_Attachments__r.isEmpty()){
+                    for(Documents_Attachment__c appAttachment : appDoc.Documents_Attachments__r) {
+                        appDocWrapper.childNodes.add(new DocumentTreeWrapper(appAttachment.Id, appAttachment.Name));
+                    }
+                }
+                
+                uiWrapper.put(appDoc.Id, appDocWrapper);
+            }
+        }
+        return uiWrapper.values();
+    }
+    
+    public void viewPDF(){
+        String appDocId = Apexpages.currentPage().getParameters().get('attachId');
+        system.debug('para::'+appDocId);
+        docWrapperInstance = new docWrapper();
+        Documents_Attachment__c appDocAttach = new Documents_Attachment__c();
+        if(appDocId != null){
+            appDocAttach = [SELECT id,Name,Attachement_Id__c FROM Documents_Attachment__c WHERE id =: appDocId];
+            if(appDocAttach != null && appDocAttach.Attachement_Id__c != null){
+                try{
+                    system.debug('appDocAttach.Attachement_Id__c'+appDocAttach.Attachement_Id__c);
+                    Attachment att = [select id,name,body,contenttype  from attachment where id =: appDocAttach.Attachement_Id__c limit 1];
+                    if(att.contenttype !=null){
+                        docWrapperInstance.contentType = att.contenttype;
+                        docWrapperInstance.blobFile = att.body;
+                    }
+                }catch(Exception e){
+                    System.debug('e.getmshg'+e.getMessage());
+                }
+            }
+        }else{
+            //System.debug('e.getmshg'+e.getMessage());
+            docWrapperInstance = new docWrapper();
+            docWrapperInstance.contentType = 'application/';
+            docWrapperInstance.blobFile = blob.valueOf('');
+        }
+    }
+    
+    global class DocumentTreeWrapper {
+        public String documentID;
+        public String documentName;
+        public List<DocumentTreeWrapper> childNodes = new List<DocumentTreeWrapper>();
+        
+        public DocumentTreeWrapper(String documentID, String documentName) {
+            this.documentID = documentID;
+            this.documentName = documentName;
+        }
+    }
+    
+    global class docWrapper{
+        public String contentType{get;set;}
+        public blob blobFile{get;set;}
+    }   
+}
+-------------------------------------------------
+
+<aura:application extends="ltng:outApp" access="global">
+    <aura:dependency resource="c:FileUploader"/>
+</aura:application>
+
+------------------------------------------------
+
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" controller="addFileComponentController" >
+    <!-- 'parentId' Aura Attribute for store the Id for Parent Record where we are attach our file -->  
+    <aura:attribute name="parentId" type="String" />
+    
+    <aura:attribute name="recordId" type="String" default="a00N000000QXVAZIA5"/>
+    <aura:attribute name="isPDF" type="Boolean" default="true"/>
+    <aura:attribute name="operationType" type="String" />
+    <aura:attribute name="optionList" type="String[]" />
+    
+    <aura:attribute name="docType" type="String" default=""/>
+    <!-- 'showLoadingSpinner' attribute for show/hide the uploading image and msg in aura:if-->
+    <aura:attribute name="showLoadingSpinner" type="boolean" default="false" />
+    <!-- 'fileName' attribute for display the selected file name -->  
+    <aura:attribute name="fileName" type="String" default="No File Selected.." />
+    <!-- Lightning Input with file type and on file change call the 'handleFilesChange' controller --> 
+    
+    <aura:attribute name="otherFileName" type="String" default=""/>
+    
+    
+    <aura:attribute name="showFileUpload" type="Boolean" default="true"/>
+    
+    
+    
+    <aura:if isTrue="{!v.showFileUpload}">
+       
+            <div class="slds-m-around-large">
+                <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+                    <div class="slds-modal__container">
+                        
+                        <div class="slds-modal__header">
+                            <button class="slds-button slds-modal__close slds-button--icon-inverse" title="Close" onclick="{!c.closeModel}">
+                                X
+                                <span class="slds-assistive-text">Close</span>
+                            </button>
+                            <h2 id="header99" class="slds-text-heading--medium">Add Files</h2>
+                        </div>
+                        <div class="slds-modal__content slds-p-around--medium">
+                            
+                            <br/>
+                            <aura:if isTrue="{!v.docType =='Others'}">
+                                
+                                <lightning:input  label="Enter File Name"  value="{!v.otherFileName}"  />
+                                
+                            </aura:if>                           
+                            
+                            <br/>
+                            <lightning:input aura:id="fileId" onchange="{!c.handleFilesChange}" type="file" name="file" label="Upload Attachment" multiple="false"/>
+                            <div class="slds-text-body_small slds-text-color_error">{!v.fileName} </div>
+                            
+                            
+                            <aura:if isTrue="{!v.showLoadingSpinner}">
+                                <div class="slds-text-body_small slds-text-color_error">Uploading... 
+                                    <img src="/auraFW/resources/aura/images/spinner.gif" class="spinner-img" alt="Loading"/>'
+                                </div>
+                            </aura:if>
+                            
+                            <br/>
+                            
+                            <button class="slds-button slds-button_brand" onclick="{!c.doSave}">Upload Attachment</button>	
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-backdrop slds-backdrop--open"></div> 
+                
+            </div>
+        
+    </aura:if>
+    
+</aura:component>
+
+-------------------------------------------------
+
+({
+    
+    doSave: function(component, event, helper) {
+        debugger;
+         
+        
+        if(component.find("fileId").get("v.files") == null)
+            alert('Please Select a File');
+        
+        else if (component.find("fileId").get("v.files").length > 0) 
+        {
+                      helper.uploadHelper(component, event);
+        }
+      },
+    handleFilesChange: function(component, event, helper) {
+        debugger;
+        var customFileName = 'No File Selected..';
+        var customFileType = '';
+        var fileExtension ='';
+        if (event.getSource().get("v.files").length > 0) {
+            customFileName = event.getSource().get("v.files")[0]['name'];
+            customFileType = event.getSource().get("v.files")[0]['type'];
+            fileExtension = customFileName.split('.')[1];
+        }
+        //alert(customFileType);
+        //alert(fileExtension);
+        if(component.get("v.docType")  != 'Others' ){
+            if(component.get("v.docType")  != 'Corporate Presentation'){
+                
+                if(customFileType != 'application/pdf'){
+                    component.set("v.isPDF",false);
+                    alert('Please upload PDF only.');
+                    return;
+                }    
+            }   
+        }        
+        component.set("v.fileName", customFileName);
+    },
+    closeModel: function(component,event,helper){
+        var cmpTarget = component.find('Modalbox');
+        var cmpBack = component.find('Modalbackdrop');
+        $A.util.removeClass(cmpBack,'slds-backdrop--open');
+        $A.util.removeClass(cmpTarget, 'slds-fade-in-open'); 
+        component.set("v.showFileUpload",false);
+    },
+})
+
+---------------------------------------------------------------
+
+({
+    MAX_FILE_SIZE: 4500000, //Max file size 4.5 MB 
+    CHUNK_SIZE: 750000,      //Chunk Max size 750Kb 
+    
+    uploadHelper: function(component, event) {
+        // start/show the loading spinner   
+        component.set("v.showLoadingSpinner", true);
+        // get the selected files using aura:id [return array of files]
+        var fileInput = component.find("fileId").get("v.files");
+        // get the first file using array index[0]  
+        var file = fileInput[0];
+        var self = this;
+        // check the selected file size, if select file size greter then MAX_FILE_SIZE,
+        // then show a alert msg to user,hide the loading spinner and return from function  
+        if (file.size > self.MAX_FILE_SIZE) {
+            component.set("v.showLoadingSpinner", false);
+            component.set("v.fileName", 'Alert : File size cannot exceed ' + self.MAX_FILE_SIZE + ' bytes.\n' + ' Selected file size: ' + file.size);
+            return;
+        }
+        
+        // create a FileReader object 
+        var objFileReader = new FileReader();
+        // set onload function of FileReader object   
+        objFileReader.onload = $A.getCallback(function() {
+            var fileContents = objFileReader.result;
+            var base64 = 'base64,';
+            var dataStart = fileContents.indexOf(base64) + base64.length;
+            
+            fileContents = fileContents.substring(dataStart);
+            // call the uploadProcess method 
+            self.uploadProcess(component, file, fileContents);
+        });
+        
+        objFileReader.readAsDataURL(file);
+    },
+    
+    uploadProcess: function(component, file, fileContents) {
+        // set a default size or startpostiton as 0 
+        var startPosition = 0;
+        // calculate the end size or endPostion using Math.min() function which is return the min. value   
+        var endPosition = Math.min(fileContents.length, startPosition + this.CHUNK_SIZE);
+        
+        // start with the initial chunk, and set the attachId(last parameter)is null in begin
+        this.uploadInChunk(component, file, fileContents, startPosition, endPosition, '');
+    },
+    
+    
+    uploadInChunk: function(component, file, fileContents, startPosition, endPosition, attachId) {
+        debugger;
+        var getchunk = fileContents.substring(startPosition, endPosition);
+        var action = component.get("c.saveChunk");
+        var fileName = component.get("v.fileName");
+       
+        action.setParams({
+            parentId: component.get("v.recordId"),
+            fileName:fileName,
+            //fileName: component.get("v.fileName"),
+            // fileName: file.name,
+            base64Data: encodeURIComponent(getchunk),
+            contentType: file.type,
+            fileId: attachId
+        });
+        
+        // set call back 
+        action.setCallback(this, function(response) {
+            // store the response / Attachment Id   
+            attachId = response.getReturnValue();
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                // update the start position with end postion
+                startPosition = endPosition;
+                endPosition = Math.min(fileContents.length, startPosition + this.CHUNK_SIZE);
+                // check if the start postion is still less then end postion 
+                // then call again 'uploadInChunk' method , 
+                // else, diaply alert msg and hide the loading spinner
+                if (startPosition < endPosition) {
+                    this.uploadInChunk(component, file, fileContents, startPosition, endPosition, attachId);
+                } else {
+                    //alert('your File is uploaded successfully');
+                    component.set("v.showLoadingSpinner", false);
+                    window.location.reload();
+                    component.set("v.showFileUpload",false);
+                }
+                // handel the response errors        
+            } else if (state === "INCOMPLETE") {
+                alert("From server: " + response.getReturnValue());
+            } else if (state === "ERROR") {
+                var errors = response.getError();
+                if (errors) {
+                    if (errors[0] && errors[0].message) {
+                        console.log("Error message: " + errors[0].message);
+                    }
+                } else {
+                    console.log("Unknown error");
+                }
+            }
+        });
+        // enqueue the action
+        $A.enqueueAction(action);
+    },
+    
+    
+    navigateToParentRecord : function(component,event,helper)
+    {
+        var navEvt = $A.get("e.force:navigateToSObject");
+        navEvt.setParams({
+            "recordId": component.get("v.recordId")
+            //  "slideDevName": "related"
+        });
+        navEvt.fire();       
+        
+    },
+    
+    showToast : function(component,event,helper)
+    {
+        
+        
+    },
+    
+})
+
+--------------------------------------------------------------------
+
+global without sharing class addFileComponentController {
+     
+    // Apex Methods for addAttachmentComponent Starts
+    
+    @AuraEnabled
+    public static Id saveChunk(String parentId, String fileName, String base64Data, String contentType, String fileId) {
+        // check if fileId id ''(Always blank in first chunk), then call the saveTheFile method,
+        //  which is save the check data and return the attachemnt Id after insert, 
+        //  next time (in else) we are call the appentTOFile() method
+        //   for update the attachment with reamins chunks   
+        if (fileId == '') {
+            fileId = saveTheFile(parentId, fileName, base64Data, contentType);
+        } else {
+            appendToFile(fileId, base64Data);
+        }
+        
+        return Id.valueOf(fileId);
+    }
+    
+    public static Id saveTheFile(String parentId, String fileName, String base64Data, String contentType) {
+        system.debug('base64Data'+base64Data);
+        base64Data = EncodingUtil.urlDecode(base64Data, 'UTF-8');
+        
+        Attachment oAttachment = new Attachment();
+        oAttachment.parentId = parentId;
+        oAttachment.Body = EncodingUtil.base64Decode(base64Data);
+        oAttachment.Name = fileName;
+        oAttachment.ContentType = contentType;
+        insert oAttachment;
+        system.debug('oAttachment.Id'+oAttachment.Id);
+        return oAttachment.Id;
+    }
+    
+    private static void appendToFile(Id fileId, String base64Data) {
+        base64Data = EncodingUtil.urlDecode(base64Data, 'UTF-8');
+        
+        Attachment a = [
+            SELECT Id, Body
+            FROM Attachment
+            WHERE Id =: fileId
+        ];
+        
+        String existingBody = EncodingUtil.base64Encode(a.Body);
+        
+        a.Body = EncodingUtil.base64Decode(existingBody + base64Data);
+        
+        update a;
+    }
+    
+}
+
+--------------------------------------------------------------------
