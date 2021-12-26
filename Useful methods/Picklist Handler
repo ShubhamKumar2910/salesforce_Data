@@ -1,4 +1,4 @@
-
+//Edited by shubham
 @AuraEnabled
 public static List<String> getFieldsLabelName(){
 Peoplelist__c searchPeople=Peoplelist__c.getValues('Contact');
