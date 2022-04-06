@@ -1,0 +1,36 @@
+   //SFAL-66 added by shubham kumar
+    public static Integer getTotalAverageCount(Integer totalRecords, Integer num){
+        
+        try{
+            Integer count = 0;
+            Integer modVal = math.mod(totalRecords, num);
+            if(modVal > 0){
+                count = (totalRecords - modVal)/num +1;
+            }else{
+                count = totalRecords/num ;
+            }
+            return count;
+        }
+        catch(Exception ex){
+            system.debug(ex.getMessage());
+            return 0;
+        }
+    }
+    //SFAL-66 added by shubham kumar
+    public static List<List<String>> splitList(List<String> strList, Integer maxUUIDs) {
+        
+        List<List<String>> spilttedLists = new List<List<String>>();
+        
+        integer count = getTotalAverageCount(strList.size(),maxUUIDs);
+        system.debug('count'+count);//(strList.size() / maxUUIDs)+1
+        for(Integer i = 0 ; i < count ; i++){
+            List<string> dynamicUUIDS = new List<string>();
+            for(Integer j=(i*maxUUIDs);(j<(i*maxUUIDs)+maxUUIDs) && j<strList.size() ; j++){
+                dynamicUUIDS.add(strList.get(j));
+            }
+            spilttedLists.add(dynamicUUIDS);
+        }
+        system.debug('Size of List'+spilttedLists.size());
+        system.debug('Size of List'+spilttedLists);
+       return spilttedLists;
+    }
