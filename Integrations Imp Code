@@ -1,0 +1,8 @@
+String restrequestURL = URL.getSalesforceBaseUrl().toExternalForm();
+RestRequest req = RestContext.request;        
+restrequestURL=restrequestURL+'/services/apexrest/'+RestContext.request.requestURI+'?';
+for(String s:RestContext.request.params.keyset()){
+    restrequestURL=restrequestURL+s+'='+RestContext.request.params.get(s)+'&';
+}
+restrequestURL=restrequestURL.removeEnd('&');
+system.debug('*******'+restrequestURL);
