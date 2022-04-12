@@ -1,0 +1,302 @@
+/***************************************************************************
+* Created by: Shubham Kumar, 2022.04.10
+* Test Class: zTEST_TF_GetLicenseService
+* Description: This class is used by other Systems to get the details of licenses which are corresponding to a customer.
+Example Salesforce:-
+* 1) Endpoint (GET) = /services/apexrest/v4/licenses/partyId=98422?offset=10?limit=20?status='all'
+* **************************************************************************/
+@RestResource(urlMapping='/v4/licenses/*')
+global with sharing class TF_GetLicenseService{
+    
+    public class Licenses {
+        public String licenseId;
+        public String customerId;
+        public String licenseType;
+        public String grantType;
+        public String accessScope;
+        public String salesChannel;
+        public String productVersion;
+        public String licenseVersion;
+        public String orderNumber;
+        public String purchaseDate;
+        public String licenseName;
+        public String startDate;
+        public String endDate;
+        public String status;
+        public String partyId;
+    }
+    
+    global class LicenseResponse {
+        public Map<String,Object> metadata = new Map<String,Object>();
+        public List<Licenses> data;
+        public Integer statusCode;
+        
+        public void success(List<Licenses> data, String message,Integer statusCode){
+            metadata.put('status','success');
+            metadata.put('message', message);
+            this.data = data;   
+            this.statusCode = statusCode;
+        }
+        
+        public void error(List<Licenses> data,Object exceptionDetails,Integer statusCode){
+            metadata.put('status','failure');
+            metadata.put('message', exceptionDetails);
+            this.data = data;
+            this.statusCode = statusCode;
+        } 
+        
+        public void clear(){
+            metadata.clear();
+        }        
+    }
+    
+    @HttpGet
+    global static void getLicenseData() {
+        LicenseResponse response = new LicenseResponse();
+        try{
+            String result                   = '';
+            String command                  = getCommand(RestContext.request.requestURI);
+            String operation                = operationLookup('GET', command);
+            Map<String, String> paramMap    = RestContext.request.params;
+            String uri = String.valueOf(RestContext.request.requestURI);
+            system.debug('operation'+operation);
+            String partyid = uri.substring(uri.lastIndexOf('=')+1);
+
+            
+            if ( operation == 'getLicensesByPartyId' ) {
+                response = getLicenseInfoByPartyID(partyid, paramMap);
+            } else if ( operation == 'getLicenseInfoByLicenseID' ) {
+                response = getLicenseInfoByLicenseID(partyid, paramMap);
+            }  else {
+                response.error(null,'Invalid resource',404);
+            }
+            
+            if ( String.isNotBlank(JSON.serialize(response)) ) {
+                RestContext.response.responseBody = Blob.valueOf(JSON.serialize(response));
+                RestContext.response.addHeader('Content-Type', 'application/json');
+            }
+            //return Blob.valueOf(JSON.serialize(response));
+        }catch(exception e){
+            RestContext.response.statusCode = 404;
+            response.error(null,e.getMessage(),404);
+            RestContext.response.responseBody = Blob.valueOf(JSON.serialize(response));
+            RestContext.response.addHeader('Content-Type', 'application/json');
+        }
+    }
+    
+    
+    public static LicenseResponse getLicenseInfoByPartyID(String partyId,Map<String, String> paramsMap) {
+        system.debug(partyId);
+        List<Licenses> licenseListResponse = new List<Licenses>();
+        LicenseResponse response = new LicenseResponse();
+        Integer offset;
+        Integer TotLimit;
+        try {
+            String offlimit = paramsMap.get('offset').replace('?',',');
+            List<String> allParams = offlimit.split(',');
+            system.debug('allParams[0]'+allParams[0]+'allParams[1].remove'+allParams[1].remove('limit='));
+            if(allParams[0].isNumeric()){
+                system.debug('here @ 81');
+                offset = integer.valueOf(allParams[0]);
+                if(offset < 0){
+                    return response;
+                }else if(offset == null){
+                    offset = 0;
+                }
+            }else{
+                response.error(null,'Provide the numeric limit',404);
+                return response;
+            }
+            if(allParams[1].remove('limit=').isNumeric()){
+                TotLimit = integer.valueOf(allParams[1].remove('limit='));
+                if(TotLimit <= 0){
+                    response.error(null,'Provide the limit greater than 0',404);
+                    return response;
+                }else if(TotLimit == null ){
+                    TotLimit = 10;
+                }
+            }else{
+                response.error(null,'Provide the numeric limit',404);
+                return response;
+            }
+            String Status = allParams[2].remove('status=');
+            system.debug('Params ==== >> Offff : '+offset+'::: Limit :'+TotLimit+':::: Status : '+Status); 
+            
+            /*if ( offsetVar >= totalLicenseRecrds ) {
+errorResp.setError('Offset should be less than total records = '+totalLicenseRecrds);
+RestContext.response.statusCode = 400;
+return JSON.serialize(errorResp);
+}*/
+            
+            if(partyId != null) {
+                system.debug('partyId'+partyId);
+                List<Account> accounts = [SELECT ID, NAME FROM ACCOUNT WHERE Customer_Id__c =: partyId ];
+                Integer  licenseListSize = [SELECT count() From asset where accountId =: accounts[0].Id ];
+                if(offset > licenseListSize){
+                    response.error(null,'offset Can Not be greater thean available licenses -'+licenseListSize,404);
+                }else{
+                    
+                    if(accounts.size() > 0 ){
+                        system.debug('accounts'+accounts[0].Id);
+                        List<Asset>  licenseList = [SELECT Id,InstallDate ,TF_Access_Scope__c,status ,PurchaseDate,TF_Sales_Channel__c,TF_OMS_Order_Id__c,TF_Product_Version_Number__c,Product2Id,TF_Entitlement_Creation_Status__c,TF_Grant_Type__c,UsageEndDate,TF_Customer_Id__c ,TF_Subscription_End_Date__c,TF_License_Type__c, Name ,TF_License_Version__c From asset where accountId =: accounts[0].Id  ORDER BY LastModifiedDate DESC  limit :TotLimit offset :offset];            
+                        if(licenseList != null && licenseList.size() > 0){
+                            system.debug('accounts'+licenseList.size());
+                            for(Asset ass : licenseList){
+                                Licenses license = new Licenses();
+                                license.licenseId = String.valueOf( ass.id );
+                                license.customerId = ass.TF_Customer_Id__c  != NULL ? String.valueOf( ass.TF_Customer_Id__c ) : '';
+                                license.accessScope = String.isNotBlank(ass.TF_Access_Scope__c ) ? ass.TF_Access_Scope__c  : '';
+                                license.licenseType = String.isNotBlank(ass.TF_License_Type__c ) ? ass.TF_License_Type__c  : '';
+                                license.orderNumber = String.isNotBlank(ass.TF_OMS_Order_Id__c ) ? ass.TF_OMS_Order_Id__c  : '';
+                                license.salesChannel = String.isNotBlank(ass.TF_Sales_Channel__c ) ? ass.TF_Sales_Channel__c  : '';
+                                license.purchaseDate = ass.PurchaseDate  != NULL ? String.valueOf( ass.PurchaseDate  ) : '';
+                                license.productVersion = ass.TF_Product_Version_Number__c  != NULL ? String.valueOf(ass.TF_Product_Version_Number__c):'';
+                                license.licenseVersion = ass.TF_License_Version__c  != NULL ? String.valueOf(ass.TF_License_Version__c):'';
+                                license.licenseName = ass.name;
+                                license.grantType = ass.TF_Grant_Type__c  != NULL ? String.valueOf(ass.TF_Grant_Type__c):'';
+                                license.startDate = ass.InstallDate  != NULL ? String.valueOf(ass.InstallDate) : '';
+                                license.endDate = ass.UsageEndDate  != NULL ? String.valueOf(ass.UsageEndDate) : '';
+                                license.status = String.isNotBlank(ass.Status) ? ass.Status : '';
+                                licenseListResponse.add(license);
+                            }
+                            response.success(licenseListResponse, 'SUCCSESS',200);   
+                        }
+                        else{
+                            response.error(null,'No License associated found with provided partyId',404);
+                        }
+                        
+                    }else{
+                        response.error(null,'No account found with provided partyId',400);
+                    }
+                }
+            }  else {
+                response.error(null,'Request does not have valid partyId',400);
+            }  
+            
+        } catch(Exception ex){
+            response.error(null,ex.getMessage(),402);
+            system.debug(ex.getMessage());
+        }
+        system.debug('response'+response);
+        return response;        
+    }
+    
+    public static LicenseResponse getLicenseInfoByLicenseID(String partyId,Map<String, String> paramsMap) {
+        system.debug(partyId);
+        List<Licenses> licenseListResponse = new List<Licenses>();
+        LicenseResponse response = new LicenseResponse();
+        Integer offset;
+        Integer TotLimit;
+        try {
+            String offlimit = paramsMap.get('offset').replace('?',',');
+            List<String> allParams = offlimit.split(',');
+            system.debug('allParams[0]'+allParams[0]+'allParams[1].remove'+allParams[1].remove('limit='));
+            if(allParams[0].isNumeric()){
+                system.debug('here @ 81');
+                offset = integer.valueOf(allParams[0]);
+                if(offset < 0){
+                    return response;
+                }else if(offset == null){
+                    offset = 0;
+                }
+            }else{
+                response.error(null,'Provide the numeric limit',404);
+                return response;
+            }
+            if(allParams[1].remove('limit=').isNumeric()){
+                TotLimit = integer.valueOf(allParams[1].remove('limit='));
+                if(TotLimit <= 0){
+                    response.error(null,'Provide the limit greater than 0',404);
+                    return response;
+                }else if(TotLimit == null ){
+                    TotLimit = 10;
+                }
+            }else{
+                response.error(null,'Provide the numeric limit',404);
+                return response;
+            }
+            String Status = allParams[2].remove('status=');
+            system.debug('Params ==== >> Offff : '+offset+'::: Limit :'+TotLimit+':::: Status : '+Status); 
+            
+            if(partyId != null) {
+                system.debug('partyId'+partyId);
+                List<Account> accounts = [SELECT ID, NAME FROM ACCOUNT WHERE Customer_Id__c =: partyId ];
+                Integer  licenseListSize = [SELECT count() From asset where accountId =: accounts[0].Id ];
+                if(offset > licenseListSize){
+                    response.error(null,'offset Can Not be greater thean available licenses -'+licenseListSize,404);
+                }else{
+                    
+                    if(accounts.size() > 0 ){
+                        system.debug('accounts'+accounts[0].Id);
+                        List<Asset>  licenseList = [SELECT Id,InstallDate ,TF_Access_Scope__c,status ,PurchaseDate,TF_Sales_Channel__c,TF_OMS_Order_Id__c,TF_Product_Version_Number__c,Product2Id,TF_Entitlement_Creation_Status__c,TF_Grant_Type__c,UsageEndDate,TF_Customer_Id__c ,TF_Subscription_End_Date__c,TF_License_Type__c, Name ,TF_License_Version__c From asset where accountId =: accounts[0].Id  ORDER BY LastModifiedDate DESC  limit :TotLimit offset :offset];            
+                        if(licenseList != null && licenseList.size() > 0){
+                            system.debug('accounts'+licenseList.size());
+                            for(Asset ass : licenseList){
+                                Licenses license = new Licenses();
+                                license.licenseId = String.valueOf( ass.id );
+                                license.customerId = ass.TF_Customer_Id__c  != NULL ? String.valueOf( ass.TF_Customer_Id__c ) : '';
+                                license.accessScope = String.isNotBlank(ass.TF_Access_Scope__c ) ? ass.TF_Access_Scope__c  : '';
+                                license.licenseType = String.isNotBlank(ass.TF_License_Type__c ) ? ass.TF_License_Type__c  : '';
+                                license.orderNumber = String.isNotBlank(ass.TF_OMS_Order_Id__c ) ? ass.TF_OMS_Order_Id__c  : '';
+                                license.salesChannel = String.isNotBlank(ass.TF_Sales_Channel__c ) ? ass.TF_Sales_Channel__c  : '';
+                                license.purchaseDate = ass.PurchaseDate  != NULL ? String.valueOf( ass.PurchaseDate  ) : '';
+                                license.productVersion = ass.TF_Product_Version_Number__c  != NULL ? String.valueOf(ass.TF_Product_Version_Number__c):'';
+                                license.licenseVersion = ass.TF_License_Version__c  != NULL ? String.valueOf(ass.TF_License_Version__c):'';
+                                license.licenseName = ass.name;
+                                license.grantType = ass.TF_Grant_Type__c  != NULL ? String.valueOf(ass.TF_Grant_Type__c):'';
+                                license.startDate = ass.InstallDate  != NULL ? String.valueOf(ass.InstallDate) : '';
+                                license.endDate = ass.UsageEndDate  != NULL ? String.valueOf(ass.UsageEndDate) : '';
+                                license.status = String.isNotBlank(ass.Status) ? ass.Status : '';
+                                licenseListResponse.add(license);
+                            }
+                            response.success(licenseListResponse, 'SUCCSESS',200);   
+                        }
+                        else{
+                            response.error(null,'No License associated found with provided partyId',404);
+                        }
+                        
+                    }else{
+                        response.error(null,'No account found with provided partyId',400);
+                    }
+                }
+            }  else {
+                response.error(null,'Request does not have valid partyId',400);
+            }  
+            
+        } catch(Exception ex){
+            response.error(null,ex.getMessage(),402);
+            system.debug(ex.getMessage());
+        }
+        system.debug('response'+response);
+        return response;        
+    }
+    private static String getCommand(String requestedUri) {
+        String returnURI = '';
+        if ( requestedUri.containsIgnoreCase('partyId') ) {
+            returnURI = 'Party';
+        }
+        else if ( !requestedUri.containsIgnoreCase('partyId') ){
+            returnURI = 'Licenses'; 
+        }
+        //returnURI = 'multipleLicenses'; 
+        return returnURI;
+    }
+    private static String operationLookup(String method, String command) {
+        String operation = 'unknown';
+        if (method.equals('GET')) {
+            if (command.containsIgnoreCase('Party')) {
+                operation = 'getLicensesByPartyId';
+            } else if (command.containsIgnoreCase('Licenses')) {
+                operation = 'getLicenseInfoByLicenseID';
+            }
+            
+        } else if(method.equals('POST')) {
+            
+        } else if (method.equals('DELETE')) {
+            
+        } else if (method.equals('PUT')) {
+            
+        }
+        return operation;
+    }
+}
